@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เครื่องคิดเลข 🍰🍜</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Prompt', sans-serif; }
+
+  :root {
+    --bg: linear-gradient(135deg, #ffd6e8, #ffe9f3);
+    --calc-bg: #fff0f6;
+    --display-bg: #ffffff;
+    --display-text: #d6336c;
+    --btn-bg: #ffdeeb;
+    --btn-text: #a61e4d;
+    --btn-op-bg: #fcc2d7;
+    --btn-eq-bg: #f06595;
+    --btn-eq-text: #fff;
+    --shadow: rgba(214, 51, 108, 0.25);
+    --title: #c2255c;
+  }
+
+  body.savory {
+    --bg: linear-gradient(135deg, #3e2723, #5d4037);
+    --calc-bg: #4e342e;
+    --display-bg: #3e2723;
+    --display-text: #ffcc80;
+    --btn-bg: #6d4c41;
+    --btn-text: #ffe0b2;
+    --btn-op-bg: #8d6e63;
+    --btn-eq-bg: #e65100;
+    --btn-eq-text: #fff;
+    --shadow: rgba(0, 0, 0, 0.4);
+    --title: #ffb74d;
+  }
+
+  body {
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    transition: background 0.5s;
+  }
+
+  h1 { color: var(--title); transition: color 0.5s; }
+
+  .theme-toggle {
+    display: flex;
+    gap: 10px;
+  }
+
+  .theme-btn {
+    padding: 10px 22px;
+    border: none;
+    border-radius: 999px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    box-shadow: 0 4px 10px var(--shadow);
+    transition: transform 0.15s, background 0.5s, color 0.5s;
+  }
+  .theme-btn:hover { transform: scale(1.05); }
+  .theme-btn.active {
+    background: var(--btn-eq-bg);
+    color: var(--btn-eq-text);
+  }
+
+  .calculator {
+    background: var(--calc-bg);
+    padding: 24px;
+    border-radius: 24px;
+    box-shadow: 0 12px 30px var(--shadow);
+    transition: background 0.5s;
+    width: 320px;
+  }
+
+  .display {
+    background: var(--display-bg);
+    color: var(--display-text);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 18px;
+    text-align: right;
+    min-height: 80px;
+    transition: background 0.5s, color 0.5s;
+    overflow-wrap: break-word;
+  }
+  .display .expr { font-size: 0.95rem; opacity: 0.6; min-height: 1.2em; }
+  .display .result { font-size: 2rem; font-weight: bold; }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .btn {
+    padding: 18px 0;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    box-shadow: 0 3px 6px var(--shadow);
+    transition: transform 0.1s, background 0.5s, color 0.5s;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn.op { background: var(--btn-op-bg); }
+  .btn.eq { background: var(--btn-eq-bg); color: var(--btn-eq-text); grid-column: span 2; }
+
+  .theme-emoji { font-size: 2rem; }
+</style>
+</head>
+<body>
+  <h1 id="title">🍰 เครื่องคิดเลขขนมหวาน</h1>
+
+  <div class="theme-toggle">
+    <button class="theme-btn active" id="sweetBtn">🍩 ขนมหวาน</button>
+    <button class="theme-btn" id="savoryBtn">🍜 อาหารคาว</button>
+  </div>
+
+  <div class="calculator">
+    <div class="display">
+      <div class="expr" id="expr">&nbsp;</div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="buttons">
+      <button class="btn op" data-action="clear">C</button>
+      <button class="btn op" data-action="delete">⌫</button>
+      <button class="btn op" data-value="%">%</button>
+      <button class="btn op" data-value="/">÷</button>
+      <button class="btn" data-value="7">7</button>
+      <button class="btn" data-value="8">8</button>
+      <button class="btn" data-value="9">9</button>
+      <button class="btn op" data-value="*">×</button>
+      <button class="btn" data-value="4">4</button>
+      <button class="btn" data-value="5">5</button>
+      <button class="btn" data-value="6">6</button>
+      <button class="btn op" data-value="-">−</button>
+      <button class="btn" data-value="1">1</button>
+      <button class="btn" data-value="2">2</button>
+      <button class="btn" data-value="3">3</button>
+      <button class="btn op" data-value="+">+</button>
+      <button class="btn" data-value="0">0</button>
+      <button class="btn" data-value=".">.</button>
+      <button class="btn eq" data-action="equals">=</button>
+    </div>
+  </div>
+
+<script>
+  const exprEl = document.getElementById('expr');
+  const resultEl = document.getElementById('result');
+  let expression = '';
+
+  function updateDisplay() {
+    exprEl.innerHTML = expression || '&nbsp;';
+    resultEl.textContent = expression === '' ? '0' : expression
+      .replace(/\//g, '÷').replace(/\*/g, '×').replace(/-/g, '−');
+  }
+
+  function calculate() {
+    if (!expression) return;
+    try {
+      if (!/^[0-9+\-*/.%() ]+$/.test(expression)) throw new Error();
+      const sanitized = expression.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+      const value = Function('"use strict"; return (' + sanitized + ')')();
+      if (!isFinite(value)) throw new Error();
+      exprEl.textContent = expression.replace(/\//g, '÷').replace(/\*/g, '×') + ' =';
+      resultEl.textContent = Math.round(value * 1e10) / 1e10;
+      expression = String(Math.round(value * 1e10) / 1e10);
+    } catch {
+      resultEl.textContent = 'ผิดพลาด';
+      expression = '';
+    }
+  }
+
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      if (action === 'clear') { expression = ''; updateDisplay(); }
+      else if (action === 'delete') { expression = expression.slice(0, -1); updateDisplay(); }
+      else if (action === 'equals') { calculate(); }
+      else {
+        const v = btn.dataset.value;
+        if (/[+\-*/%.]/.test(v) && /[+\-*/%.]$/.test(expression)) {
+          expression = expression.slice(0, -1) + v;
+        } else if (expression === '' && /[+*/%]/.test(v)) {
+          return;
+        } else {
+          expression += v;
+        }
+        updateDisplay();
+      }
+    });
+  });
+
+  document.addEventListener('keydown', e => {
+    if (/^[0-9+\-*/.%]$/.test(e.key)) { expression += e.key; updateDisplay(); }
+    else if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); calculate(); }
+    else if (e.key === 'Backspace') { expression = expression.slice(0, -1); updateDisplay(); }
+    else if (e.key === 'Escape') { expression = ''; updateDisplay(); }
+  });
+
+  const sweetBtn = document.getElementById('sweetBtn');
+  const savoryBtn = document.getElementById('savoryBtn');
+  const title = document.getElementById('title');
+
+  function setTheme(theme) {
+    document.body.classList.toggle('savory', theme === 'savory');
+    sweetBtn.classList.toggle('active', theme === 'sweet');
+    savoryBtn.classList.toggle('active', theme === 'savory');
+    title.textContent = theme === 'savory'
+      ? '🍜 เครื่องคิดเลขอาหารคาว'
+      : '🍰 เครื่องคิดเลขขนมหวาน';
+    localStorage.setItem('calc-theme', theme);
+  }
+
+  sweetBtn.addEventListener('click', () => setTheme('sweet'));
+  savoryBtn.addEventListener('click', () => setTheme('savory'));
+  setTheme(localStorage.getItem('calc-theme') || 'sweet');
+</script>
+</body>
+</html>
