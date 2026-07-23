@@ -2,228 +2,444 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เครื่องคิดเลข 🍰🍜</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Insider — เกมบอร์ดจับไส้ศึก 🕵️</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Prompt', sans-serif; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent;
+      font-family: 'Prompt', 'Segoe UI', system-ui, sans-serif; }
 
   :root {
-    --bg: linear-gradient(135deg, #ffd6e8, #ffe9f3);
-    --calc-bg: #fff0f6;
-    --display-bg: #ffffff;
-    --display-text: #d6336c;
-    --btn-bg: #ffdeeb;
-    --btn-text: #a61e4d;
-    --btn-op-bg: #fcc2d7;
-    --btn-eq-bg: #f06595;
-    --btn-eq-text: #fff;
-    --shadow: rgba(214, 51, 108, 0.25);
-    --title: #c2255c;
-  }
-
-  body.savory {
-    --bg: linear-gradient(135deg, #3e2723, #5d4037);
-    --calc-bg: #4e342e;
-    --display-bg: #3e2723;
-    --display-text: #ffcc80;
-    --btn-bg: #6d4c41;
-    --btn-text: #ffe0b2;
-    --btn-op-bg: #8d6e63;
-    --btn-eq-bg: #e65100;
-    --btn-eq-text: #fff;
-    --shadow: rgba(0, 0, 0, 0.4);
-    --title: #ffb74d;
+    --bg: #0f1226;
+    --card: #1b1f3b;
+    --card2: #262b52;
+    --accent: #6c5ce7;
+    --accent2: #a29bfe;
+    --gold: #ffd166;
+    --danger: #ff6b6b;
+    --good: #51cf66;
+    --text: #f1f3ff;
+    --muted: #9aa0c9;
   }
 
   body {
+    background: radial-gradient(circle at 30% 0%, #1e2450, #0f1226 60%);
+    color: var(--text);
     min-height: 100vh;
-    background: var(--bg);
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    gap: 20px;
-    transition: background 0.5s;
+    padding: 20px 16px 40px;
   }
 
-  h1 { color: var(--title); transition: color 0.5s; }
+  .app { width: 100%; max-width: 460px; }
 
-  .theme-toggle {
-    display: flex;
-    gap: 10px;
+  header { text-align: center; margin-bottom: 20px; }
+  header h1 { font-size: 1.9rem; letter-spacing: 1px; }
+  header h1 .eye { filter: drop-shadow(0 0 8px var(--accent2)); }
+  header p { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+
+  .screen { display: none; animation: fade 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .card {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
   }
 
-  .theme-btn {
-    padding: 10px 22px;
-    border: none;
-    border-radius: 999px;
-    font-size: 1rem;
-    cursor: pointer;
-    background: var(--btn-bg);
-    color: var(--btn-text);
-    box-shadow: 0 4px 10px var(--shadow);
-    transition: transform 0.15s, background 0.5s, color 0.5s;
-  }
-  .theme-btn:hover { transform: scale(1.05); }
-  .theme-btn.active {
-    background: var(--btn-eq-bg);
-    color: var(--btn-eq-text);
-  }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin: 14px 0 6px; }
+  label:first-child { margin-top: 0; }
 
-  .calculator {
-    background: var(--calc-bg);
-    padding: 24px;
-    border-radius: 24px;
-    box-shadow: 0 12px 30px var(--shadow);
-    transition: background 0.5s;
-    width: 320px;
+  input, select {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: var(--card2);
+    color: var(--text);
+    font-size: 1.1rem;
+    outline: none;
   }
+  input:focus, select:focus { border-color: var(--accent2); }
+  input.code { text-transform: uppercase; letter-spacing: 4px; text-align: center; font-weight: bold; font-size: 1.5rem; }
 
-  .display {
-    background: var(--display-bg);
-    color: var(--display-text);
-    border-radius: 14px;
-    padding: 18px;
-    margin-bottom: 18px;
-    text-align: right;
-    min-height: 80px;
-    transition: background 0.5s, color 0.5s;
-    overflow-wrap: break-word;
-  }
-  .display .expr { font-size: 0.95rem; opacity: 0.6; min-height: 1.2em; }
-  .display .result { font-size: 2rem; font-weight: bold; }
+  .row { display: flex; gap: 12px; }
+  .row > * { flex: 1; }
 
-  .buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-  }
-
-  .btn {
-    padding: 18px 0;
-    font-size: 1.2rem;
+  button.btn {
+    width: 100%;
+    padding: 16px;
     border: none;
     border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
     cursor: pointer;
-    background: var(--btn-bg);
-    color: var(--btn-text);
-    box-shadow: 0 3px 6px var(--shadow);
-    transition: transform 0.1s, background 0.5s, color 0.5s;
+    margin-top: 18px;
+    box-shadow: 0 6px 16px rgba(108,92,231,0.4);
+    transition: transform 0.1s;
   }
-  .btn:active { transform: scale(0.95); }
-  .btn.op { background: var(--btn-op-bg); }
-  .btn.eq { background: var(--btn-eq-bg); color: var(--btn-eq-text); grid-column: span 2; }
+  button.btn:active { transform: scale(0.97); }
+  button.btn.ghost {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: none;
+    color: var(--muted);
+  }
+  button.btn.gold { background: linear-gradient(135deg, #ffd166, #f7b731); color: #3a2c00; box-shadow: 0 6px 16px rgba(247,183,49,0.35); }
 
-  .theme-emoji { font-size: 2rem; }
+  .hint { font-size: 0.8rem; color: var(--muted); line-height: 1.6; margin-top: 10px; }
+  .hint b { color: var(--accent2); }
+
+  .steps { counter-reset: step; list-style: none; margin-top: 8px; }
+  .steps li { position: relative; padding: 8px 0 8px 38px; font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+  .steps li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 0; top: 8px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--card2); color: var(--accent2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: bold;
+  }
+
+  /* Reveal card */
+  .reveal {
+    position: relative;
+    height: 300px;
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    user-select: none;
+  }
+  .reveal .cover {
+    position: absolute; inset: 0; z-index: 2;
+    background: linear-gradient(135deg, var(--accent), #4834d4);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; transition: opacity 0.3s;
+  }
+  .reveal .cover .lock { font-size: 3rem; }
+  .reveal .cover .txt { font-size: 1rem; }
+  .reveal.open .cover { opacity: 0; pointer-events: none; }
+  .reveal .content {
+    position: absolute; inset: 0; z-index: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 20px;
+  }
+  .role-name { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+  .role-emoji { font-size: 3.4rem; margin-bottom: 10px; }
+  .role-desc { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+  .secret-word {
+    margin-top: 16px; padding: 12px 20px;
+    background: rgba(255,209,102,0.12); border: 1px dashed var(--gold);
+    border-radius: 12px; font-size: 1.4rem; font-weight: bold; color: var(--gold);
+  }
+  .role-master { background: linear-gradient(160deg, #2b1a4d, #1b1f3b); }
+  .role-insider { background: linear-gradient(160deg, #4d1a1a, #1b1f3b); }
+  .role-common { background: linear-gradient(160deg, #1a3d4d, #1b1f3b); }
+
+  /* Timer */
+  .timer-display { text-align: center; font-size: 4rem; font-weight: 800; margin: 10px 0; font-variant-numeric: tabular-nums; }
+  .timer-display.warn { color: var(--gold); }
+  .timer-display.danger { color: var(--danger); }
+  .phase-label { text-align: center; color: var(--muted); font-size: 0.9rem; }
+
+  .pill { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--card2); font-size: 0.8rem; color: var(--muted); }
+  .center { text-align: center; }
+  .mt { margin-top: 14px; }
 </style>
 </head>
 <body>
-  <h1 id="title">🍰 เครื่องคิดเลขขนมหวาน</h1>
+<div class="app">
+  <header>
+    <h1><span class="eye">🕵️</span> INSIDER</h1>
+    <p>เกมจับไส้ศึก · เล่นหลายเครื่องได้โดยไม่ต้องมีเซิร์ฟเวอร์</p>
+  </header>
 
-  <div class="theme-toggle">
-    <button class="theme-btn active" id="sweetBtn">🍩 ขนมหวาน</button>
-    <button class="theme-btn" id="savoryBtn">🍜 อาหารคาว</button>
-  </div>
+  <!-- HOME -->
+  <section class="screen active" id="screen-home">
+    <div class="card">
+      <label>รหัสห้อง (ทุกคนต้องใส่รหัสเดียวกัน)</label>
+      <input class="code" id="roomCode" maxlength="6" placeholder="เช่น CAT12" autocomplete="off">
+      <div class="row">
+        <button class="btn ghost" id="genCode" style="margin-top:12px;">🎲 สุ่มรหัส</button>
+      </div>
 
-  <div class="calculator">
-    <div class="display">
-      <div class="expr" id="expr">&nbsp;</div>
-      <div class="result" id="result">0</div>
+      <label>จำนวนผู้เล่นทั้งหมด</label>
+      <select id="totalPlayers"></select>
+
+      <label>คุณคือผู้เล่นหมายเลข</label>
+      <select id="myNumber"></select>
+
+      <button class="btn" id="joinBtn">เข้าเล่น →</button>
+      <p class="hint">
+        💡 <b>วิธีเล่นแบบหลายเครื่อง:</b> ให้ทุกคนเปิดเว็บนี้ ใส่<b>รหัสห้องเดียวกัน</b>
+        และ<b>จำนวนผู้เล่นเท่ากัน</b> จากนั้นแต่ละคนเลือก<b>หมายเลขของตัวเองไม่ให้ซ้ำกัน</b>
+        แล้วเครื่องจะบอกบทบาทลับของแต่ละคนเอง
+      </p>
     </div>
-    <div class="buttons">
-      <button class="btn op" data-action="clear">C</button>
-      <button class="btn op" data-action="delete">⌫</button>
-      <button class="btn op" data-value="%">%</button>
-      <button class="btn op" data-value="/">÷</button>
-      <button class="btn" data-value="7">7</button>
-      <button class="btn" data-value="8">8</button>
-      <button class="btn" data-value="9">9</button>
-      <button class="btn op" data-value="*">×</button>
-      <button class="btn" data-value="4">4</button>
-      <button class="btn" data-value="5">5</button>
-      <button class="btn" data-value="6">6</button>
-      <button class="btn op" data-value="-">−</button>
-      <button class="btn" data-value="1">1</button>
-      <button class="btn" data-value="2">2</button>
-      <button class="btn" data-value="3">3</button>
-      <button class="btn op" data-value="+">+</button>
-      <button class="btn" data-value="0">0</button>
-      <button class="btn" data-value=".">.</button>
-      <button class="btn eq" data-action="equals">=</button>
+
+    <div class="card">
+      <div class="pill">📖 กติกาโดยย่อ</div>
+      <ol class="steps">
+        <li><b>มาสเตอร์</b> รู้คำลับ และเป็นคนตอบคำถาม</li>
+        <li><b>อินไซเดอร์ (ไส้ศึก)</b> ก็รู้คำลับ แอบชี้นำให้กลุ่มทายถูก โดยไม่ถูกจับได้</li>
+        <li><b>ประชาชน</b> ไม่รู้คำลับ ช่วยกันถามคำถามใช่/ไม่ใช่ เพื่อทายคำ</li>
+        <li>ตั้งเวลาถาม-ตอบ ถ้าทายคำถูกทัน → ทุกคนโหวตหาว่าใครคืออินไซเดอร์</li>
+        <li>จับอินไซเดอร์ได้ → ประชาชนชนะ · จับไม่ได้ → อินไซเดอร์ชนะ</li>
+      </ol>
     </div>
-  </div>
+  </section>
+
+  <!-- REVEAL -->
+  <section class="screen" id="screen-reveal">
+    <div class="card">
+      <p class="center" style="color:var(--muted);font-size:0.9rem;">
+        ห้อง <b id="showCode" style="color:var(--accent2)"></b> · คุณคือผู้เล่น <b id="showNum"></b>
+      </p>
+      <p class="center hint" style="margin-top:4px;">👆 แตะค้างเพื่อดูบทบาทลับ (อย่าให้คนอื่นเห็น!)</p>
+      <div class="reveal mt" id="revealCard">
+        <div class="cover">
+          <div class="lock">🔒</div>
+          <div class="txt">แตะค้างเพื่อเปิด</div>
+        </div>
+        <div class="content" id="revealContent"></div>
+      </div>
+      <button class="btn gold" id="toTimer">พร้อมแล้ว → ไปหน้าจับเวลา</button>
+      <button class="btn ghost" id="backHome">← กลับหน้าแรก</button>
+    </div>
+  </section>
+
+  <!-- TIMER -->
+  <section class="screen" id="screen-timer">
+    <div class="card">
+      <p class="phase-label" id="phaseLabel">⏱️ เวลาถาม-ตอบ เพื่อทายคำลับ</p>
+      <div class="timer-display" id="timer">05:00</div>
+      <div class="row">
+        <button class="btn" id="startTimer">▶️ เริ่ม</button>
+        <button class="btn ghost" id="resetTimer">↺ รีเซ็ต</button>
+      </div>
+      <label>ตั้งเวลา (นาที)</label>
+      <select id="minutes">
+        <option value="3">3 นาที</option>
+        <option value="5" selected>5 นาที</option>
+        <option value="7">7 นาที</option>
+        <option value="10">10 นาที</option>
+      </select>
+      <div class="hint mt">
+        เมื่อทายคำถูกแล้วให้กดหยุด แล้วทุกคนโหวตหา <b>อินไซเดอร์</b> พร้อมกัน
+        (นับ 3 แล้วชี้) จากนั้นให้มาสเตอร์เปิดเผยว่าใครคืออินไซเดอร์ตัวจริง
+      </div>
+      <button class="btn ghost mt" id="newRound">🔄 เริ่มรอบใหม่ (สุ่มบทบาทใหม่)</button>
+    </div>
+  </section>
+</div>
 
 <script>
-  const exprEl = document.getElementById('expr');
-  const resultEl = document.getElementById('result');
-  let expression = '';
-
-  function updateDisplay() {
-    exprEl.innerHTML = expression || '&nbsp;';
-    resultEl.textContent = expression === '' ? '0' : expression
-      .replace(/\//g, '÷').replace(/\*/g, '×').replace(/-/g, '−');
-  }
-
-  function calculate() {
-    if (!expression) return;
-    try {
-      if (!/^[0-9+\-*/.%() ]+$/.test(expression)) throw new Error();
-      const sanitized = expression.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
-      const value = Function('"use strict"; return (' + sanitized + ')')();
-      if (!isFinite(value)) throw new Error();
-      exprEl.textContent = expression.replace(/\//g, '÷').replace(/\*/g, '×') + ' =';
-      resultEl.textContent = Math.round(value * 1e10) / 1e10;
-      expression = String(Math.round(value * 1e10) / 1e10);
-    } catch {
-      resultEl.textContent = 'ผิดพลาด';
-      expression = '';
+  // ---------- deterministic RNG ----------
+  function hashSeed(str) {
+    let h = 1779033703 ^ str.length;
+    for (let i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
     }
+    return () => {
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      h = (h ^= h >>> 16) >>> 0;
+      return h / 4294967296;
+    };
+  }
+  function shuffle(arr, rand) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
 
-  document.querySelectorAll('.btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const action = btn.dataset.action;
-      if (action === 'clear') { expression = ''; updateDisplay(); }
-      else if (action === 'delete') { expression = expression.slice(0, -1); updateDisplay(); }
-      else if (action === 'equals') { calculate(); }
-      else {
-        const v = btn.dataset.value;
-        if (/[+\-*/%.]/.test(v) && /[+\-*/%.]$/.test(expression)) {
-          expression = expression.slice(0, -1) + v;
-        } else if (expression === '' && /[+*/%]/.test(v)) {
-          return;
-        } else {
-          expression += v;
-        }
-        updateDisplay();
+  // ---------- word list ----------
+  const WORDS = [
+    "ช้าง","ทุเรียน","รถไฟฟ้า","วัดพระแก้ว","ต้มยำกุ้ง","แมวเหมียว","ดวงจันทร์","ร่มกันฝน",
+    "กีตาร์","ภูเขาไฟ","นักบินอวกาศ","ไอศกรีม","ประภาคาร","สายรุ้ง","หุ่นยนต์","ปลาวาฬ",
+    "กาแฟเย็น","ว่าวจุฬา","มังกร","กระเป๋าเดินทาง","นาฬิกาปลุก","สนามบิน","โทรศัพท์","ดินสอ",
+    "ผีเสื้อ","น้ำตก","ลูกโป่ง","กล้องถ่ายรูป","จักรยาน","เตาอบ","สมอเรือ","ปิรามิด"
+  ];
+
+  // ---------- role definitions ----------
+  const ROLES = {
+    master:  { name: "มาสเตอร์", emoji: "👑", cls: "role-master",
+      desc: "คุณรู้คำลับ! ตอบคำถามของทุกคนด้วย ใช่ / ไม่ใช่ / ไม่เกี่ยว เท่านั้น ห้ามบอกคำตรงๆ" },
+    insider: { name: "อินไซเดอร์ (ไส้ศึก)", emoji: "🕵️", cls: "role-insider",
+      desc: "คุณก็รู้คำลับ! แอบชี้นำให้กลุ่มทายถูกภายในเวลา แต่ต้องไม่ให้ใครจับได้ว่าคุณรู้คำอยู่แล้ว" },
+    common:  { name: "ประชาชน", emoji: "🧑‍🤝‍🧑", cls: "role-common",
+      desc: "คุณไม่รู้คำลับ ช่วยกันถามคำถามใช่/ไม่ใช่ เพื่อทายคำให้ทัน แล้วช่วยจับอินไซเดอร์ให้เจอ" }
+  };
+
+  // ---------- state ----------
+  let state = {};
+
+  // ---------- populate selects ----------
+  const totalSel = document.getElementById('totalPlayers');
+  const mySel = document.getElementById('myNumber');
+  for (let i = 3; i <= 12; i++) {
+    totalSel.insertAdjacentHTML('beforeend', `<option value="${i}">${i} คน</option>`);
+  }
+  totalSel.value = 5;
+  function fillMyNumbers() {
+    const t = +totalSel.value;
+    mySel.innerHTML = '';
+    for (let i = 1; i <= t; i++) mySel.insertAdjacentHTML('beforeend', `<option value="${i}">คนที่ ${i}</option>`);
+  }
+  fillMyNumbers();
+  totalSel.addEventListener('change', fillMyNumbers);
+
+  // restore last room
+  const saved = JSON.parse(localStorage.getItem('insider') || '{}');
+  if (saved.room) document.getElementById('roomCode').value = saved.room;
+  if (saved.total) { totalSel.value = saved.total; fillMyNumbers(); }
+
+  // ---------- screen nav ----------
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  document.getElementById('genCode').addEventListener('click', () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let c = "";
+    for (let i = 0; i < 5; i++) c += chars[Math.floor(Math.random() * chars.length)];
+    document.getElementById('roomCode').value = c;
+  });
+
+  // ---------- round number (lets everyone reshuffle together) ----------
+  function currentRound() {
+    const s = JSON.parse(localStorage.getItem('insider') || '{}');
+    return s.round || 1;
+  }
+
+  document.getElementById('joinBtn').addEventListener('click', () => {
+    const room = document.getElementById('roomCode').value.trim().toUpperCase();
+    const total = +totalSel.value;
+    const myNum = +mySel.value;
+    if (!room) { alert('กรุณาใส่รหัสห้อง'); return; }
+
+    let s = JSON.parse(localStorage.getItem('insider') || '{}');
+    const round = (s.room === room) ? (s.round || 1) : 1;
+    localStorage.setItem('insider', JSON.stringify({ room, total, myNum, round }));
+
+    state = { room, total, myNum, round };
+    computeAndReveal();
+    show('screen-reveal');
+  });
+
+  function computeAndReveal() {
+    const { room, total, myNum, round } = state;
+    const rand = hashSeed(room + '#' + total + '#R' + round);
+
+    // pick secret word
+    const word = WORDS[Math.floor(rand() * WORDS.length)];
+
+    // assign roles: player numbers 1..total shuffled
+    const order = shuffle(Array.from({ length: total }, (_, i) => i + 1), rand);
+    const masterNum = order[0];
+    const insiderNum = order[1];
+
+    let role;
+    if (myNum === masterNum) role = 'master';
+    else if (myNum === insiderNum) role = 'insider';
+    else role = 'common';
+
+    state.role = role;
+    state.word = word;
+
+    document.getElementById('showCode').textContent = room;
+    document.getElementById('showNum').textContent = 'คนที่ ' + myNum;
+
+    const r = ROLES[role];
+    const showWord = (role === 'master' || role === 'insider');
+    document.getElementById('revealContent').innerHTML = `
+      <div class="role-emoji">${r.emoji}</div>
+      <div class="role-name">${r.name}</div>
+      <div class="role-desc">${r.desc}</div>
+      ${showWord ? `<div class="secret-word">🔑 ${word}</div>` : `<div class="hint mt">คำลับจะถูกเปิดเผยเมื่อจบเกม</div>`}
+    `;
+    const card = document.getElementById('revealCard');
+    card.className = 'reveal mt ' + r.cls;
+    card.classList.remove('open');
+  }
+
+  // ---------- reveal press-and-hold ----------
+  const revealCard = document.getElementById('revealCard');
+  const openReveal = () => revealCard.classList.add('open');
+  const closeReveal = () => revealCard.classList.remove('open');
+  revealCard.addEventListener('touchstart', (e) => { e.preventDefault(); openReveal(); }, { passive: false });
+  revealCard.addEventListener('touchend', closeReveal);
+  revealCard.addEventListener('touchcancel', closeReveal);
+  revealCard.addEventListener('mousedown', openReveal);
+  revealCard.addEventListener('mouseup', closeReveal);
+  revealCard.addEventListener('mouseleave', closeReveal);
+
+  document.getElementById('backHome').addEventListener('click', () => show('screen-home'));
+  document.getElementById('toTimer').addEventListener('click', () => { resetTimer(); show('screen-timer'); });
+
+  // ---------- timer ----------
+  let remaining = 300, tick = null, running = false;
+  const timerEl = document.getElementById('timer');
+  const minutesSel = document.getElementById('minutes');
+
+  function fmt(s) {
+    const m = Math.floor(s / 60), sec = s % 60;
+    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+  function renderTimer() {
+    timerEl.textContent = fmt(remaining);
+    timerEl.className = 'timer-display' + (remaining <= 10 ? ' danger' : remaining <= 30 ? ' warn' : '');
+  }
+  function resetTimer() {
+    clearInterval(tick); running = false;
+    remaining = +minutesSel.value * 60;
+    document.getElementById('startTimer').textContent = '▶️ เริ่ม';
+    renderTimer();
+  }
+  minutesSel.addEventListener('change', resetTimer);
+  document.getElementById('resetTimer').addEventListener('click', resetTimer);
+
+  document.getElementById('startTimer').addEventListener('click', () => {
+    if (running) {
+      clearInterval(tick); running = false;
+      document.getElementById('startTimer').textContent = '▶️ เล่นต่อ';
+      return;
+    }
+    running = true;
+    document.getElementById('startTimer').textContent = '⏸️ หยุด';
+    tick = setInterval(() => {
+      remaining--;
+      renderTimer();
+      if (remaining <= 0) {
+        clearInterval(tick); running = false;
+        document.getElementById('startTimer').textContent = '▶️ เริ่ม';
+        document.getElementById('phaseLabel').innerHTML = '⏰ หมดเวลา! เริ่มโหวตหาอินไซเดอร์ได้เลย';
+        try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
       }
-    });
+    }, 1000);
   });
+  renderTimer();
 
-  document.addEventListener('keydown', e => {
-    if (/^[0-9+\-*/.%]$/.test(e.key)) { expression += e.key; updateDisplay(); }
-    else if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); calculate(); }
-    else if (e.key === 'Backspace') { expression = expression.slice(0, -1); updateDisplay(); }
-    else if (e.key === 'Escape') { expression = ''; updateDisplay(); }
+  // ---------- new round ----------
+  document.getElementById('newRound').addEventListener('click', () => {
+    let s = JSON.parse(localStorage.getItem('insider') || '{}');
+    s.round = (s.round || 1) + 1;
+    localStorage.setItem('insider', JSON.stringify(s));
+    alert('รอบใหม่: ' + s.round + '\nบอกทุกคนให้กด "เริ่มรอบใหม่" แล้วเข้าเล่นด้วยรหัสห้องเดิม เพื่อสุ่มบทบาทใหม่พร้อมกัน');
+    document.getElementById('phaseLabel').innerHTML = '⏱️ เวลาถาม-ตอบ เพื่อทายคำลับ';
+    show('screen-home');
   });
-
-  const sweetBtn = document.getElementById('sweetBtn');
-  const savoryBtn = document.getElementById('savoryBtn');
-  const title = document.getElementById('title');
-
-  function setTheme(theme) {
-    document.body.classList.toggle('savory', theme === 'savory');
-    sweetBtn.classList.toggle('active', theme === 'sweet');
-    savoryBtn.classList.toggle('active', theme === 'savory');
-    title.textContent = theme === 'savory'
-      ? '🍜 เครื่องคิดเลขอาหารคาว'
-      : '🍰 เครื่องคิดเลขขนมหวาน';
-    localStorage.setItem('calc-theme', theme);
-  }
-
-  sweetBtn.addEventListener('click', () => setTheme('sweet'));
-  savoryBtn.addEventListener('click', () => setTheme('savory'));
-  setTheme(localStorage.getItem('calc-theme') || 'sweet');
 </script>
 </body>
 </html>
