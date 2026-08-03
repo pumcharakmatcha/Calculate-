@@ -20,6 +20,7 @@
     --text:#152840; --text2:#41556f; --muted:#71829a;
     --red:#c0392b; --red-l:#fdecea; --green:#1a7a52; --amber:#a86a11; --amber-l:#fdf4e3;
     --safe-b: env(safe-area-inset-bottom, 0px);
+    --field-h:45px;
     --shadow:0 1px 2px rgba(21,40,64,.06), 0 1px 3px rgba(21,40,64,.04);
   }
   html,body{ height:100%; }
@@ -121,6 +122,16 @@
   }
   input:focus,textarea:focus,select:focus{ border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-l); }
   input::placeholder,textarea::placeholder{ color:#a3b0c2; }
+  /* every single-line field is exactly the same height, including date/time
+     which Chrome otherwise makes taller via its inner ::-webkit-datetime-edit */
+  input:not([type=file]), select{ height:var(--field-h); }
+  input[type="datetime-local"]{
+    -webkit-appearance:none; appearance:none;
+    padding-top:0; padding-bottom:0; line-height:normal;
+  }
+  input[type="datetime-local"]::-webkit-datetime-edit{ padding:0; line-height:normal; }
+  input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper{ padding:0; }
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator{ opacity:.5; padding:0; margin:0; }
   textarea{ resize:vertical; min-height:80px; line-height:1.6; }
   select{ appearance:none; background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
     background-position:calc(100% - 19px) 20px, calc(100% - 14px) 20px; background-size:5px 5px; background-repeat:no-repeat; padding-right:38px; }
@@ -313,6 +324,11 @@
           <div class="k">เตือนสรุปงานตอนเปิดแอป
             <small>แสดงรายการที่เลยกำหนดทันทีที่เข้าเว็บ</small></div>
           <div class="sw on" id="swDigest"></div>
+        </div>
+        <div class="kv">
+          <div class="k">ปักหมุดสรุปงานไว้ในแถบแจ้งเตือน
+            <small>แสดงสรุปงานวันนี้ค้างไว้ในแถบแจ้งเตือน ใช้แทนวิดเจ็ตได้ ปัดทิ้งได้ทุกเมื่อ</small></div>
+          <div class="sw" id="swPin"></div>
         </div>
         <button class="btn ghost sm" id="testNotif">ทดสอบการแจ้งเตือน</button>
         <div class="banner info" style="margin:14px 0 0;">
@@ -605,6 +621,8 @@ function render(){
   const badge = today.length + late.length;
   $('bToday').style.display = badge ? 'flex' : 'none';
   $('bToday').textContent = badge;
+  updateBadge(badge);          // number on the home-screen icon
+  refreshPin();                // keep the pinned summary in sync
 
   const up = pend.slice().sort(byTime).filter(i=>dayDiff(i.at,now)<=7).slice(0,8);
   $('upcomingList').innerHTML = up.length ? up.map(itemHTML).join('')
@@ -748,6 +766,58 @@ $('swDigest').addEventListener('click', ()=>{
   $('swDigest').classList.toggle('on', S().digest !== false);
   checkMissed();
 });
+/* ---- home-screen surfaces: icon badge + pinned summary notification ---- */
+function updateBadge(n){
+  try{
+    if('setAppBadge' in navigator){
+      n > 0 ? navigator.setAppBadge(n) : navigator.clearAppBadge();
+    }
+  }catch(e){}
+}
+
+function summaryText(){
+  const now = new Date();
+  const pend = live().filter(i=>i.at && !i.done);
+  const today = pend.filter(i=>dayDiff(i.at,now)===0);
+  const late  = pend.filter(i=>new Date(i.at)<now);
+  const next  = pend.slice().sort(byTime).find(i=>new Date(i.at)>=now);
+  const lines = [`วันนี้ ${today.length} · เลยกำหนด ${late.length}`];
+  if(next) lines.push(`ถัดไป: ${next.title} — ${fmtFull(next.at)}`);
+  else lines.push('ไม่มีรายการค้างข้างหน้า');
+  return lines.join('\n');
+}
+
+async function refreshPin(){
+  if(S().pinned !== true) return;
+  if(typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  try{
+    const reg = await navigator.serviceWorker?.ready;
+    if(!reg) return;
+    reg.showNotification('สรุปงานของฉัน', {
+      body: summaryText(), icon:'icons/icon-192.png', badge:'icons/icon-192.png',
+      tag:'wl-summary', requireInteraction:true, renotify:false, silent:true
+    });
+  }catch(e){}
+}
+
+async function clearPin(){
+  try{
+    const reg = await navigator.serviceWorker?.ready;
+    (await reg?.getNotifications({tag:'wl-summary'}) || []).forEach(n=>n.close());
+  }catch(e){}
+}
+
+$('swPin').addEventListener('click', async ()=>{
+  if(S().pinned === true){
+    S().pinned = false; save(); $('swPin').classList.remove('on'); clearPin(); return;
+  }
+  if(typeof Notification === 'undefined' || Notification.permission !== 'granted'){
+    await askPerm();
+    if(Notification.permission !== 'granted') return;
+  }
+  S().pinned = true; save(); $('swPin').classList.add('on'); refreshPin();
+});
+
 $('testNotif').addEventListener('click', async ()=>{
   if(typeof Notification === 'undefined' || Notification.permission !== 'granted') return askPerm();
   const o = { body:'ถ้าเห็นข้อความนี้แปลว่าการแจ้งเตือนพร้อมใช้งานแล้ว', icon:'icons/icon-192.png',
@@ -1009,8 +1079,19 @@ if('serviceWorker' in navigator){
   addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 
+/* app-icon shortcuts (long-press the icon on Android) land here */
+function handleLaunchParams(){
+  const p = new URLSearchParams(location.search);
+  const tab = p.get('tab'), add = p.get('add');
+  if(tab && $('t-'+tab)) document.querySelector(`.tabbar button[data-tab="${tab}"]`)?.click();
+  if(add && KIND[add]){ openSheet(null); setKind(add); }
+  if(tab || add) history.replaceState(null, '', location.pathname);
+}
+
 render(); permUI(); installUI(); scheduleAll(); checkMissed();
 $('swDigest').classList.toggle('on', S().digest !== false);
+$('swPin').classList.toggle('on', S().pinned === true);
+handleLaunchParams();
 if(S().token){ setSync('idle'); if(S().autoSync !== false) syncNow(); } else syncUI();
 
 setInterval(()=>{ render(); checkMissed(); }, 60000);

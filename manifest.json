@@ -39,5 +39,46 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "เพิ่มนัดหมาย",
+      "short_name": "นัดหมาย",
+      "description": "เพิ่มนัดหมายใหม่ทันที",
+      "url": "./index.html?add=appt",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "เพิ่มบันทึก",
+      "short_name": "บันทึก",
+      "description": "จดอัปเดตการทำงาน",
+      "url": "./index.html?add=note",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "ตารางงาน",
+      "short_name": "ตาราง",
+      "description": "ดูนัดหมายและงานทั้งหมด",
+      "url": "./index.html?tab=plan",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }
