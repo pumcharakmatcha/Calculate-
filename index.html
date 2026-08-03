@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#6c5ce7">
+<meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="งานของฉัน">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -14,12 +14,13 @@
 <style>
   *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   :root{
-    --bg:#0e1020; --bg2:#151831; --card:#1b1f3b; --card2:#232848;
-    --line:rgba(255,255,255,.08);
-    --accent:#6c5ce7; --accent2:#a29bfe; --gold:#ffd166;
-    --red:#ff6b6b; --green:#51cf66; --blue:#4dabf7;
-    --text:#f1f3ff; --muted:#8f96c4;
+    --bg:#eff3f8; --surface:#ffffff; --surface2:#f6f9fc; --surface3:#eaf1f9;
+    --line:#dbe3ee; --line2:#c7d3e3;
+    --primary:#00529c; --primary-d:#003b73; --primary-l:#e7f0fa; --accent:#0f7bc4;
+    --text:#152840; --text2:#41556f; --muted:#71829a;
+    --red:#c0392b; --red-l:#fdecea; --green:#1a7a52; --amber:#a86a11; --amber-l:#fdf4e3;
     --safe-b: env(safe-area-inset-bottom, 0px);
+    --shadow:0 1px 2px rgba(21,40,64,.06), 0 1px 3px rgba(21,40,64,.04);
   }
   html,body{ height:100%; }
   body{
@@ -27,186 +28,226 @@
     background:var(--bg); color:var(--text);
     overscroll-behavior-y:none; -webkit-font-smoothing:antialiased;
   }
-  .wrap{ max-width:520px; margin:0 auto; min-height:100%; display:flex; flex-direction:column; }
+  .wrap{ max-width:520px; margin:0 auto; min-height:100%; display:flex; flex-direction:column;
+         background:var(--bg); box-shadow:0 0 0 1px var(--line); }
 
   /* ---------- top bar ---------- */
   .topbar{
-    position:sticky; top:0; z-index:40;
-    padding:calc(env(safe-area-inset-top,0px) + 16px) 18px 14px;
-    background:linear-gradient(180deg,#1a1e3d,rgba(14,16,32,.92));
-    backdrop-filter:blur(12px); border-bottom:1px solid var(--line);
+    position:sticky; top:0; z-index:40; background:var(--surface);
+    padding:calc(env(safe-area-inset-top,0px) + 15px) 18px 13px;
+    border-bottom:1px solid var(--line);
   }
-  .topbar h1{ font-size:1.25rem; font-weight:700; letter-spacing:.2px; display:flex; align-items:center; gap:8px; }
-  .topbar .sub{ color:var(--muted); font-size:.78rem; margin-top:3px; }
+  .topbar .bar{ display:flex; align-items:center; gap:11px; }
+  .topbar .rule{ width:4px; height:30px; background:var(--primary); border-radius:1px; flex-shrink:0; }
+  .topbar h1{ font-size:1.16rem; font-weight:600; letter-spacing:-.01em; flex:1; min-width:0;
+              white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .topbar .sub{ color:var(--muted); font-size:.75rem; margin-top:4px; padding-left:15px; }
+
+  .syncchip{
+    display:flex; align-items:center; gap:5px; font-size:.68rem; font-weight:500;
+    padding:5px 10px; border-radius:999px; background:var(--surface2);
+    border:1px solid var(--line); color:var(--muted); flex-shrink:0; cursor:pointer;
+  }
+  .syncchip.ok{ color:var(--green); border-color:#bfe0d0; background:#f0f9f4; }
+  .syncchip.busy{ color:var(--accent); border-color:#bcdcf2; background:var(--primary-l); }
+  .syncchip.err{ color:var(--red); border-color:#f0c4bf; background:var(--red-l); }
+  .syncchip .dot{ width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .syncchip.busy .dot{ animation:pulse 1s infinite; }
+  @keyframes pulse{ 50%{ opacity:.25; } }
 
   main{ flex:1; padding:16px 16px calc(150px + var(--safe-b)); }
-  .tab{ display:none; animation:in .25s ease; }
+  .tab{ display:none; animation:in .22s ease; }
   .tab.on{ display:block; }
-  @keyframes in{ from{opacity:0; transform:translateY(6px);} to{opacity:1;transform:none;} }
+  @keyframes in{ from{opacity:0; transform:translateY(5px);} to{opacity:1;transform:none;} }
 
-  .card{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; margin-bottom:14px; }
-  .card.flat{ background:var(--bg2); }
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:10px;
+         padding:16px; margin-bottom:14px; box-shadow:var(--shadow); }
 
-  h2.sec{ font-size:.82rem; color:var(--muted); font-weight:600; margin:20px 4px 10px; letter-spacing:.4px; text-transform:uppercase; }
-  h2.sec:first-child{ margin-top:4px; }
+  h2.sec{ font-size:.73rem; color:var(--muted); font-weight:600; margin:22px 2px 10px;
+          letter-spacing:.08em; text-transform:uppercase; display:flex; align-items:center; gap:7px; }
+  h2.sec:first-child{ margin-top:2px; }
 
   /* ---------- stats ---------- */
-  .stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:6px; }
-  .stat{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 10px; text-align:center; }
-  .stat .n{ font-size:1.7rem; font-weight:800; line-height:1.1; }
-  .stat .l{ font-size:.7rem; color:var(--muted); margin-top:4px; }
-  .stat.a .n{ color:var(--gold); } .stat.b .n{ color:var(--blue); } .stat.c .n{ color:var(--red); }
+  .stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .stat{ background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--line2);
+         border-radius:8px; padding:14px 8px; text-align:center; box-shadow:var(--shadow); }
+  .stat .n{ font-size:1.65rem; font-weight:700; line-height:1.15; color:var(--text); }
+  .stat .l{ font-size:.68rem; color:var(--muted); margin-top:4px; }
+  .stat.a{ border-top-color:var(--primary); } .stat.a .n{ color:var(--primary); }
+  .stat.b{ border-top-color:var(--accent); }  .stat.b .n{ color:var(--accent); }
+  .stat.c{ border-top-color:var(--red); }     .stat.c .n{ color:var(--red); }
 
   /* ---------- item ---------- */
   .item{
-    display:flex; gap:12px; align-items:flex-start;
-    background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent);
-    border-radius:14px; padding:13px 14px; margin-bottom:10px; cursor:pointer;
-    transition:transform .1s, background .15s;
+    display:flex; gap:12px; align-items:flex-start; background:var(--surface);
+    border:1px solid var(--line); border-left:3px solid var(--primary);
+    border-radius:8px; padding:13px 14px; margin-bottom:9px; cursor:pointer;
+    box-shadow:var(--shadow); transition:background .12s, border-color .12s;
   }
-  .item:active{ transform:scale(.985); background:var(--card2); }
-  .item.appt{ border-left-color:var(--gold); }
-  .item.task{ border-left-color:var(--blue); }
-  .item.note{ border-left-color:var(--accent2); }
-  .item.done{ opacity:.45; }
+  .item:active{ background:var(--surface2); }
+  .item.appt{ border-left-color:var(--primary); }
+  .item.task{ border-left-color:var(--accent); }
+  .item.note{ border-left-color:var(--line2); }
+  .item.done{ opacity:.5; background:var(--surface2); }
   .item.done .t{ text-decoration:line-through; }
-  .item.late{ border-left-color:var(--red); background:rgba(255,107,107,.07); }
-  .item .ic{ font-size:1.3rem; line-height:1.4; }
+  .item.late{ border-left-color:var(--red); background:var(--red-l); }
+  .item .ic{ font-size:1.15rem; line-height:1.5; }
   .item .body{ flex:1; min-width:0; }
-  .item .t{ font-weight:600; font-size:.98rem; word-break:break-word; }
-  .item .m{ color:var(--muted); font-size:.76rem; margin-top:3px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-  .item .d{ color:var(--muted); font-size:.82rem; margin-top:6px; white-space:pre-wrap; word-break:break-word; }
+  .item .t{ font-weight:600; font-size:.95rem; word-break:break-word; letter-spacing:-.01em; }
+  .item .m{ color:var(--muted); font-size:.74rem; margin-top:5px; display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
+  .item .d{ color:var(--text2); font-size:.81rem; margin-top:7px; white-space:pre-wrap; word-break:break-word; line-height:1.55; }
   .chk{
-    width:26px; height:26px; border-radius:9px; border:2px solid var(--line);
+    width:24px; height:24px; border-radius:5px; border:1.5px solid var(--line2);
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
-    background:var(--card2); font-size:.85rem; margin-top:2px;
+    background:var(--surface); font-size:.8rem; margin-top:2px; color:transparent;
   }
-  .chk.on{ background:var(--green); border-color:var(--green); color:#08320f; }
-  .tag{ background:var(--card2); padding:2px 9px; border-radius:999px; font-size:.68rem; color:var(--accent2); }
-  .tag.red{ color:var(--red); background:rgba(255,107,107,.14); }
-  .tag.gold{ color:var(--gold); background:rgba(255,209,102,.12); }
-  .tag.green{ color:var(--green); background:rgba(81,207,102,.12); }
+  .chk.on{ background:var(--green); border-color:var(--green); color:#fff; }
+  .tag{ background:var(--surface3); padding:2px 8px; border-radius:4px; font-size:.68rem; color:var(--text2); }
+  .tag.red{ color:var(--red); background:var(--red-l); font-weight:500; }
+  .tag.blue{ color:var(--primary); background:var(--primary-l); font-weight:500; }
+  .tag.amber{ color:var(--amber); background:var(--amber-l); font-weight:500; }
 
-  .empty{ text-align:center; color:var(--muted); padding:34px 18px; font-size:.88rem; line-height:1.7; }
-  .empty .e{ font-size:2.4rem; display:block; margin-bottom:8px; opacity:.7; }
+  .empty{ text-align:center; color:var(--muted); padding:34px 18px; font-size:.85rem; line-height:1.8;
+          background:var(--surface); border:1px dashed var(--line2); border-radius:10px; }
+  .empty .e{ font-size:2rem; display:block; margin-bottom:8px; opacity:.55; }
 
   /* ---------- form ---------- */
-  label{ display:block; font-size:.78rem; color:var(--muted); margin:14px 0 6px; font-weight:500; }
+  label{ display:block; font-size:.76rem; color:var(--text2); margin:14px 0 6px; font-weight:500; }
   label:first-child{ margin-top:0; }
   input,textarea,select{
-    width:100%; padding:13px 14px; border-radius:12px; border:1px solid var(--line);
-    background:var(--card2); color:var(--text); font-size:1rem; outline:none;
-    font-family:inherit;
+    width:100%; padding:12px 13px; border-radius:7px; border:1px solid var(--line2);
+    background:var(--surface); color:var(--text); font-size:1rem; outline:none; font-family:inherit;
+    transition:border-color .12s, box-shadow .12s;
   }
-  input:focus,textarea:focus,select:focus{ border-color:var(--accent2); }
-  textarea{ resize:vertical; min-height:84px; }
+  input:focus,textarea:focus,select:focus{ border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-l); }
+  input::placeholder,textarea::placeholder{ color:#a3b0c2; }
+  textarea{ resize:vertical; min-height:80px; line-height:1.6; }
   select{ appearance:none; background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
-    background-position:calc(100% - 20px) 21px, calc(100% - 14px) 21px; background-size:6px 6px; background-repeat:no-repeat; padding-right:40px; }
-  .row{ display:flex; gap:10px; }
-  .row>*{ flex:1; min-width:0; }
+    background-position:calc(100% - 19px) 20px, calc(100% - 14px) 20px; background-size:5px 5px; background-repeat:no-repeat; padding-right:38px; }
+  .row{ display:flex; gap:10px; } .row>*{ flex:1; min-width:0; }
+  .mono{ font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:.82rem; letter-spacing:0; }
 
-  .seg{ display:flex; gap:8px; background:var(--bg2); padding:5px; border-radius:14px; }
+  .seg{ display:flex; background:var(--surface2); padding:4px; border-radius:8px; border:1px solid var(--line); }
   .seg button{
-    flex:1; padding:11px 4px; border:none; border-radius:10px; background:transparent;
-    color:var(--muted); font-size:.85rem; font-weight:600; cursor:pointer; font-family:inherit;
+    flex:1; padding:10px 4px; border:none; border-radius:5px; background:transparent;
+    color:var(--muted); font-size:.83rem; font-weight:500; cursor:pointer; font-family:inherit;
+    transition:background .12s, color .12s;
   }
-  .seg button.on{ background:var(--accent); color:#fff; box-shadow:0 4px 12px rgba(108,92,231,.4); }
+  .seg button.on{ background:var(--primary); color:#fff; font-weight:600; }
 
   .btn{
-    width:100%; padding:15px; border:none; border-radius:14px; cursor:pointer;
-    background:linear-gradient(135deg,var(--accent),#8b7cf0); color:#fff;
-    font-size:1rem; font-weight:600; font-family:inherit; margin-top:16px;
-    box-shadow:0 6px 18px rgba(108,92,231,.35); transition:transform .1s;
+    width:100%; padding:14px; border:none; border-radius:7px; cursor:pointer;
+    background:var(--primary); color:#fff; font-size:.97rem; font-weight:600;
+    font-family:inherit; margin-top:16px; transition:background .12s;
   }
-  .btn:active{ transform:scale(.975); }
-  .btn.ghost{ background:transparent; border:1px solid var(--line); color:var(--muted); box-shadow:none; }
-  .btn.danger{ background:transparent; border:1px solid rgba(255,107,107,.4); color:var(--red); box-shadow:none; }
-  .btn.gold{ background:linear-gradient(135deg,var(--gold),#f5b731); color:#3d2c00; box-shadow:0 6px 18px rgba(245,183,49,.3); }
-  .btn.sm{ padding:11px; font-size:.88rem; margin-top:10px; }
+  .btn:active{ background:var(--primary-d); }
+  .btn:disabled{ opacity:.5; cursor:default; }
+  .btn.ghost{ background:var(--surface); border:1px solid var(--line2); color:var(--text2); }
+  .btn.ghost:active{ background:var(--surface2); }
+  .btn.danger{ background:var(--surface); border:1px solid #e8b4ae; color:var(--red); }
+  .btn.sm{ padding:11px; font-size:.86rem; margin-top:9px; }
 
   /* ---------- fab ---------- */
   .fab{
-    position:fixed; right:calc(50% - 260px + 18px); bottom:calc(84px + var(--safe-b));
-    width:58px; height:58px; border-radius:20px; border:none; z-index:45;
-    background:linear-gradient(135deg,var(--accent),#8b7cf0); color:#fff; font-size:1.9rem;
-    box-shadow:0 8px 24px rgba(108,92,231,.5); cursor:pointer; line-height:1;
+    position:fixed; right:calc(50% - 260px + 18px); bottom:calc(82px + var(--safe-b));
+    width:54px; height:54px; border-radius:14px; border:none; z-index:45;
+    background:var(--primary); color:#fff; font-size:1.7rem; line-height:1;
+    box-shadow:0 4px 14px rgba(0,82,156,.35); cursor:pointer;
     display:flex; align-items:center; justify-content:center;
   }
   @media(max-width:556px){ .fab{ right:18px; } }
-  .fab:active{ transform:scale(.93); }
+  .fab:active{ background:var(--primary-d); }
 
   /* ---------- tabbar ---------- */
   .tabbar{
-    position:fixed; bottom:0; left:0; right:0; z-index:50;
-    display:flex; max-width:520px; margin:0 auto;
-    background:rgba(21,24,49,.96); backdrop-filter:blur(16px);
+    position:fixed; bottom:0; left:0; right:0; z-index:50; display:flex;
+    max-width:520px; margin:0 auto; background:var(--surface);
     border-top:1px solid var(--line); padding-bottom:var(--safe-b);
   }
   .tabbar button{
-    flex:1; padding:11px 2px 10px; border:none; background:transparent; cursor:pointer;
-    color:var(--muted); font-family:inherit; font-size:.65rem; display:flex;
-    flex-direction:column; align-items:center; gap:3px; position:relative;
+    flex:1; padding:10px 2px 9px; border:none; background:transparent; cursor:pointer;
+    color:var(--muted); font-family:inherit; font-size:.66rem; display:flex;
+    flex-direction:column; align-items:center; gap:3px; position:relative; font-weight:500;
   }
-  .tabbar button .i{ font-size:1.25rem; line-height:1; }
-  .tabbar button.on{ color:var(--accent2); }
+  .tabbar button .i{ font-size:1.2rem; line-height:1; filter:grayscale(1) opacity(.55); }
+  .tabbar button.on{ color:var(--primary); font-weight:600; }
+  .tabbar button.on .i{ filter:none; }
   .tabbar button.on::before{
     content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
-    width:26px; height:3px; border-radius:0 0 4px 4px; background:var(--accent2);
+    width:30px; height:2px; background:var(--primary);
   }
   .badge{
-    position:absolute; top:6px; right:calc(50% - 20px); background:var(--red); color:#fff;
+    position:absolute; top:5px; right:calc(50% - 20px); background:var(--red); color:#fff;
     font-size:.6rem; min-width:16px; height:16px; border-radius:999px; padding:0 4px;
     display:flex; align-items:center; justify-content:center; font-weight:700;
   }
 
   /* ---------- sheet ---------- */
-  .scrim{
-    position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:60; opacity:0;
-    pointer-events:none; transition:opacity .25s; backdrop-filter:blur(2px);
-  }
+  .scrim{ position:fixed; inset:0; background:rgba(21,40,64,.4); z-index:60; opacity:0;
+          pointer-events:none; transition:opacity .22s; }
   .scrim.on{ opacity:1; pointer-events:auto; }
   .sheet{
     position:fixed; left:0; right:0; bottom:0; z-index:61; max-width:520px; margin:0 auto;
-    background:var(--bg2); border-radius:24px 24px 0 0; border-top:1px solid var(--line);
+    background:var(--surface); border-radius:14px 14px 0 0; border-top:1px solid var(--line);
     padding:10px 18px calc(24px + var(--safe-b)); transform:translateY(102%);
-    transition:transform .3s cubic-bezier(.32,.72,0,1); max-height:92vh; overflow-y:auto;
+    transition:transform .28s cubic-bezier(.32,.72,0,1); max-height:92vh; overflow-y:auto;
+    box-shadow:0 -6px 24px rgba(21,40,64,.14);
   }
   .sheet.on{ transform:none; }
-  .grab{ width:40px; height:4px; border-radius:99px; background:var(--line); margin:0 auto 14px; }
-  .sheet h3{ font-size:1.1rem; margin-bottom:14px; }
+  .grab{ width:36px; height:4px; border-radius:99px; background:var(--line2); margin:0 auto 15px; }
+  .sheet h3{ font-size:1.02rem; margin-bottom:14px; font-weight:600; }
 
-  .banner{
-    background:linear-gradient(135deg,rgba(255,209,102,.16),rgba(255,209,102,.06));
-    border:1px solid rgba(255,209,102,.3); border-radius:16px; padding:14px;
-    margin-bottom:14px; font-size:.85rem; line-height:1.6;
-  }
-  .banner b{ color:var(--gold); }
-  .banner.info{ background:linear-gradient(135deg,rgba(108,92,231,.18),rgba(108,92,231,.05)); border-color:rgba(162,155,254,.3); }
-  .banner.info b{ color:var(--accent2); }
+  .banner{ background:var(--amber-l); border:1px solid #f0dcb4; border-left:3px solid var(--amber);
+           border-radius:7px; padding:13px 14px; margin-bottom:14px; font-size:.82rem; line-height:1.7; color:var(--text2); }
+  .banner b{ color:var(--amber); }
+  .banner.info{ background:var(--primary-l); border-color:#c5ddf2; border-left-color:var(--primary); }
+  .banner.info b{ color:var(--primary); }
+  .banner.err{ background:var(--red-l); border-color:#f0c4bf; border-left-color:var(--red); }
+  .banner.err b{ color:var(--red); }
+  .banner.ok{ background:#f0f9f4; border-color:#c6e3d4; border-left-color:var(--green); }
+  .banner.ok b{ color:var(--green); }
 
-  .kv{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:13px 0; border-bottom:1px solid var(--line); }
-  .kv:last-child{ border-bottom:none; }
-  .kv .k{ font-size:.9rem; }
-  .kv .k small{ display:block; color:var(--muted); font-size:.74rem; margin-top:2px; line-height:1.5; }
-  .sw{ width:50px; height:29px; border-radius:99px; background:var(--card2); border:1px solid var(--line); position:relative; flex-shrink:0; cursor:pointer; }
-  .sw::after{ content:''; position:absolute; top:3px; left:3px; width:21px; height:21px; border-radius:50%; background:var(--muted); transition:.2s; }
-  .sw.on{ background:var(--accent); border-color:var(--accent); }
-  .sw.on::after{ left:24px; background:#fff; }
+  .kv{ display:flex; justify-content:space-between; align-items:center; gap:12px;
+       padding:13px 0; border-bottom:1px solid var(--line); }
+  .kv:last-of-type{ border-bottom:none; }
+  .kv .k{ font-size:.88rem; font-weight:500; }
+  .kv .k small{ display:block; color:var(--muted); font-size:.73rem; margin-top:3px; line-height:1.55; font-weight:400; }
+  .kv .v{ font-size:.8rem; color:var(--muted); text-align:right; flex-shrink:0; }
+  .sw{ width:46px; height:27px; border-radius:99px; background:var(--line2); position:relative;
+       flex-shrink:0; cursor:pointer; transition:background .15s; }
+  .sw::after{ content:''; position:absolute; top:3px; left:3px; width:21px; height:21px;
+              border-radius:50%; background:#fff; transition:.15s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+  .sw.on{ background:var(--primary); }
+  .sw.on::after{ left:22px; }
 
-  .day{ font-size:.76rem; color:var(--accent2); font-weight:600; margin:18px 4px 8px; display:flex; align-items:center; gap:8px; }
+  .day{ font-size:.73rem; color:var(--primary); font-weight:600; margin:18px 2px 9px;
+        display:flex; align-items:center; gap:9px; letter-spacing:.02em; }
   .day::after{ content:''; flex:1; height:1px; background:var(--line); }
-  .day.today{ color:var(--gold); }
+  .day.today::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--primary); }
 
   .searchbar{ position:relative; margin-bottom:12px; }
-  .searchbar input{ padding-left:40px; }
-  .searchbar span{ position:absolute; left:14px; top:13px; opacity:.5; }
+  .searchbar input{ padding-left:38px; background:var(--surface); }
+  .searchbar span{ position:absolute; left:13px; top:12px; opacity:.45; font-size:.9rem; }
+
+  ol.howto{ counter-reset:s; list-style:none; margin:4px 0 0; }
+  ol.howto li{ position:relative; padding:7px 0 7px 30px; font-size:.82rem; color:var(--text2); line-height:1.65; }
+  ol.howto li::before{
+    counter-increment:s; content:counter(s); position:absolute; left:0; top:8px;
+    width:20px; height:20px; border-radius:50%; background:var(--primary-l); color:var(--primary);
+    display:flex; align-items:center; justify-content:center; font-size:.68rem; font-weight:700;
+  }
+  a{ color:var(--primary); }
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <div class="topbar">
-    <h1><span id="hIcon">📋</span> <span id="hTitle">งานของฉัน</span></h1>
+    <div class="bar">
+      <div class="rule"></div>
+      <h1 id="hTitle">งานของฉัน</h1>
+      <div class="syncchip" id="syncChip" style="display:none"><span class="dot"></span><span id="syncTxt">—</span></div>
+    </div>
     <div class="sub" id="hSub"></div>
   </div>
 
@@ -222,17 +263,17 @@
         <div class="stat c"><div class="n" id="sLate">0</div><div class="l">เลยกำหนด</div></div>
       </div>
 
-      <h2 class="sec">⏰ กำลังจะถึง</h2>
+      <h2 class="sec">กำลังจะถึง</h2>
       <div id="upcomingList"></div>
 
-      <h2 class="sec">📝 อัปเดตล่าสุด</h2>
+      <h2 class="sec">อัปเดตล่าสุด</h2>
       <div id="recentNotes"></div>
     </section>
 
     <!-- ===== SCHEDULE ===== -->
     <section class="tab" id="t-plan">
       <div class="searchbar"><span>🔍</span><input id="q" placeholder="ค้นหานัดหมาย / งาน..." autocomplete="off"></div>
-      <div class="seg" style="margin-bottom:6px;">
+      <div class="seg" style="margin-bottom:4px;">
         <button class="on" data-filter="upcoming">ที่จะถึง</button>
         <button data-filter="all">ทั้งหมด</button>
         <button data-filter="done">เสร็จแล้ว</button>
@@ -248,11 +289,17 @@
 
     <!-- ===== SETTINGS ===== -->
     <section class="tab" id="t-set">
+
+      <div class="card">
+        <h2 class="sec" style="margin-top:0">ซิงค์ข้อมูลข้ามเครื่อง</h2>
+        <div id="syncBox"></div>
+      </div>
+
       <div class="card">
         <h2 class="sec" style="margin-top:0">โปรไฟล์</h2>
         <label>ชื่อที่ใช้แสดง</label>
         <input id="userName" placeholder="เช่น ณัฐภูมิ" autocomplete="off">
-        <button class="btn sm" id="saveName">บันทึกชื่อ</button>
+        <button class="btn ghost sm" id="saveName">บันทึกชื่อ</button>
       </div>
 
       <div class="card">
@@ -267,10 +314,10 @@
             <small>แสดงรายการที่เลยกำหนดทันทีที่เข้าเว็บ</small></div>
           <div class="sw on" id="swDigest"></div>
         </div>
-        <button class="btn ghost sm" id="testNotif">🔔 ทดสอบการแจ้งเตือน</button>
-        <div class="banner info" style="margin-top:14px;margin-bottom:0;">
-          <b>ข้อจำกัดที่ควรรู้:</b> เว็บนี้ไม่มีเซิร์ฟเวอร์ การแจ้งเตือนจะทำงานเมื่อแอปเปิดอยู่
-          หรือค้างอยู่เบื้องหลัง ถ้าปิดแอปทิ้งไว้นานๆ ระบบจะเก็บไว้แจ้งให้ทันทีที่เปิดแอปครั้งถัดไป
+        <button class="btn ghost sm" id="testNotif">ทดสอบการแจ้งเตือน</button>
+        <div class="banner info" style="margin:14px 0 0;">
+          <b>ข้อจำกัด:</b> เว็บนี้ไม่มีเซิร์ฟเวอร์ push การแจ้งเตือนจะทำงานเมื่อแอปเปิดอยู่
+          หรือค้างอยู่เบื้องหลัง ถ้าปิดแอปทิ้งไว้นาน ระบบจะเก็บไว้แจ้งทันทีที่เปิดแอปครั้งถัดไป
         </div>
       </div>
 
@@ -282,14 +329,10 @@
       <div class="card">
         <h2 class="sec" style="margin-top:0">ข้อมูลสำรอง</h2>
         <div class="kv"><div class="k">รายการทั้งหมด<small id="cntAll">0 รายการ</small></div></div>
-        <button class="btn ghost sm" id="expBtn">⬇️ ดาวน์โหลดไฟล์สำรอง (.json)</button>
-        <button class="btn ghost sm" id="impBtn">⬆️ กู้คืนจากไฟล์สำรอง</button>
+        <button class="btn ghost sm" id="expBtn">ดาวน์โหลดไฟล์สำรอง (.json)</button>
+        <button class="btn ghost sm" id="impBtn">กู้คืนจากไฟล์สำรอง</button>
         <input type="file" id="impFile" accept="application/json,.json" style="display:none">
-        <button class="btn danger sm" id="wipeBtn">🗑️ ลบข้อมูลทั้งหมด</button>
-        <div class="banner" style="margin:14px 0 0;">
-          <b>สำคัญ:</b> ข้อมูลเก็บอยู่ในเครื่องนี้เท่านั้น (localStorage) ไม่ได้ส่งขึ้นเซิร์ฟเวอร์
-          ถ้าล้างข้อมูลเบราว์เซอร์ข้อมูลจะหาย — แนะนำให้ดาวน์โหลดไฟล์สำรองเป็นระยะ
-        </div>
+        <button class="btn danger sm" id="wipeBtn">ลบข้อมูลทั้งหมด</button>
       </div>
     </section>
   </main>
@@ -312,9 +355,9 @@
   <h3 id="sheetTitle">เพิ่มรายการใหม่</h3>
 
   <div class="seg" id="kindSeg">
-    <button class="on" data-kind="appt">📅 นัดหมาย</button>
-    <button data-kind="task">✅ งาน</button>
-    <button data-kind="note">📝 บันทึก</button>
+    <button class="on" data-kind="appt">นัดหมาย</button>
+    <button data-kind="task">งาน</button>
+    <button data-kind="note">บันทึก</button>
   </div>
 
   <label>หัวข้อ</label>
@@ -369,28 +412,24 @@ function load(){
     const d = JSON.parse(localStorage.getItem(KEY));
     if(d && Array.isArray(d.items)) return Object.assign({items:[],settings:{}}, d);
   }catch(e){}
-  return { items:[], settings:{ name:'', notif:false, digest:true, fired:[] } };
+  return { items:[], settings:{ name:'', digest:true, fired:[] } };
 }
 function save(){ localStorage.setItem(KEY, JSON.stringify(DB)); }
 const S = () => (DB.settings ||= {});
+const live = () => DB.items.filter(i => !i.deleted);
 
 /* ================= helpers ================= */
 const $ = id => document.getElementById(id);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-const KIND = {
-  appt:{ ic:'📅', label:'นัดหมาย' },
-  task:{ ic:'✅', label:'งาน' },
-  note:{ ic:'📝', label:'บันทึก' }
-};
+const KIND = { appt:{ic:'📅',label:'นัดหมาย'}, task:{ic:'✅',label:'งาน'}, note:{ic:'📝',label:'บันทึก'} };
 
 function startOfDay(d){ const x=new Date(d); x.setHours(0,0,0,0); return x; }
 function dayDiff(a,b){ return Math.round((startOfDay(a)-startOfDay(b))/86400000); }
 
 function fmtDay(iso){
-  const d = new Date(iso), n = new Date();
-  const diff = dayDiff(d,n);
+  const d = new Date(iso), n = new Date(), diff = dayDiff(d,n);
   if(diff===0) return 'วันนี้';
   if(diff===1) return 'พรุ่งนี้';
   if(diff===2) return 'มะรืนนี้';
@@ -398,19 +437,25 @@ function fmtDay(iso){
   return d.toLocaleDateString('th-TH',{ weekday:'short', day:'numeric', month:'short',
     year: d.getFullYear()!==n.getFullYear() ? 'numeric' : undefined });
 }
-function fmtTime(iso){
-  return new Date(iso).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}) + ' น.';
-}
-function fmtFull(iso){ return fmtDay(iso) + ' · ' + fmtTime(iso); }
+const fmtTime = iso => new Date(iso).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}) + ' น.';
+const fmtFull = iso => fmtDay(iso) + ' · ' + fmtTime(iso);
+
 function relative(iso){
-  const ms = new Date(iso) - Date.now();
-  const abs = Math.abs(ms), mins = Math.round(abs/60000);
+  const ms = new Date(iso) - Date.now(), abs = Math.abs(ms), mins = Math.round(abs/60000);
   let s;
   if(mins < 1) s = 'ไม่ถึงนาที';
   else if(mins < 60) s = mins + ' นาที';
   else if(mins < 1440) s = Math.round(mins/60) + ' ชม.';
   else s = Math.round(mins/1440) + ' วัน';
   return ms >= 0 ? 'อีก ' + s : 'เลยมา ' + s;
+}
+function ago(ts){
+  if(!ts) return 'ยังไม่เคย';
+  const m = Math.round((Date.now()-ts)/60000);
+  if(m < 1) return 'เมื่อสักครู่';
+  if(m < 60) return m + ' นาทีที่แล้ว';
+  if(m < 1440) return Math.round(m/60) + ' ชม.ที่แล้ว';
+  return new Date(ts).toLocaleDateString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 }
 
 /* ================= tabs ================= */
@@ -441,26 +486,22 @@ function openSheet(item){
   $('fPri').value   = item?.pri || 'normal';
   $('fRemind').value = item ? (item.remind ?? '') : '15';
 
-  if(item?.at){
-    $('fAt').value = item.at;
-  }else{
+  if(item?.at){ $('fAt').value = item.at; }
+  else{
     const d = new Date(Date.now() + 3600000);
     d.setMinutes(Math.ceil(d.getMinutes()/15)*15, 0, 0);
     $('fAt').value = toLocalInput(d);
   }
-
   $('scrim').classList.add('on');
   $('sheet').classList.add('on');
-  setTimeout(()=>{ if(!item) $('fTitle').focus(); }, 320);
+  setTimeout(()=>{ if(!item) $('fTitle').focus(); }, 300);
 }
 function toLocalInput(d){
   const p = n => String(n).padStart(2,'0');
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 function closeSheet(){
-  $('scrim').classList.remove('on');
-  $('sheet').classList.remove('on');
-  editingId = null;
+  $('scrim').classList.remove('on'); $('sheet').classList.remove('on'); editingId = null;
 }
 function setKind(k){
   kind = k;
@@ -479,9 +520,7 @@ $('scrim').addEventListener('click', closeSheet);
 $('saveItem').addEventListener('click', ()=>{
   const title = $('fTitle').value.trim();
   if(!title){ $('fTitle').focus(); return; }
-
-  const withTime = kind !== 'note';
-  const rem = $('fRemind').value;
+  const withTime = kind !== 'note', rem = $('fRemind').value;
   const data = {
     kind, title,
     note: $('fNote').value.trim(),
@@ -491,41 +530,38 @@ $('saveItem').addEventListener('click', ()=>{
     remind: (withTime && rem !== '') ? +rem : null,
     updated: Date.now()
   };
-
   if(editingId){
-    const it = DB.items.find(i=>i.id===editingId);
-    Object.assign(it, data);
+    Object.assign(DB.items.find(i=>i.id===editingId), data);
     S().fired = (S().fired||[]).filter(f => f !== editingId);
   }else{
     DB.items.push(Object.assign({ id:uid(), done:false, created:Date.now() }, data));
   }
-  save(); closeSheet(); render(); scheduleAll();
+  save(); closeSheet(); render(); scheduleAll(); queuePush();
 });
 
 $('delItem').addEventListener('click', ()=>{
   if(!editingId) return;
   if(!confirm('ลบรายการนี้ถาวรใช่หรือไม่?')) return;
-  DB.items = DB.items.filter(i=>i.id!==editingId);
-  save(); closeSheet(); render();
+  const it = DB.items.find(i=>i.id===editingId);
+  it.deleted = true; it.updated = Date.now();   // tombstone so the delete syncs
+  save(); closeSheet(); render(); scheduleAll(); queuePush();
 });
 
 /* ================= render ================= */
 function itemHTML(it){
   const late = it.at && !it.done && new Date(it.at) < new Date();
   const cls = ['item', it.kind, it.done?'done':'', late?'late':''].filter(Boolean).join(' ');
-  const checkable = it.kind !== 'note';
   const tags = (it.tags||[]).map(t=>`<span class="tag">#${esc(t)}</span>`).join('');
   const pri = it.pri==='high' ? '<span class="tag red">สำคัญมาก</span>'
             : it.pri==='low'  ? '<span class="tag">ไม่เร่ง</span>' : '';
   const when = it.at
-    ? `<span class="tag ${late?'red':'gold'}">${esc(fmtFull(it.at))}</span>
-       <span>${esc(relative(it.at))}</span>`
+    ? `<span class="tag ${late?'red':'blue'}">${esc(fmtFull(it.at))}</span><span>${esc(relative(it.at))}</span>`
     : `<span>${esc(new Date(it.created).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))}</span>`;
-  const bell = it.remind!=null && it.at && !it.done ? '<span title="ตั้งเตือนไว้">🔔</span>' : '';
+  const bell = it.remind!=null && it.at && !it.done ? '<span class="tag amber">🔔 เตือน</span>' : '';
 
   return `<div class="${cls}" data-id="${it.id}">
-    ${checkable
-      ? `<div class="chk ${it.done?'on':''}" data-toggle="${it.id}">${it.done?'✔':''}</div>`
+    ${it.kind!=='note'
+      ? `<div class="chk ${it.done?'on':''}" data-toggle="${it.id}">✔</div>`
       : `<div class="ic">${KIND[it.kind].ic}</div>`}
     <div class="body">
       <div class="t">${esc(it.title)}</div>
@@ -541,7 +577,7 @@ function bindList(el){
       e.stopPropagation();
       const it = DB.items.find(i=>i.id===c.dataset.toggle);
       it.done = !it.done; it.updated = Date.now();
-      save(); render(); scheduleAll();
+      save(); render(); scheduleAll(); queuePush();
     });
   });
   el.querySelectorAll('.item').forEach(d=>{
@@ -553,17 +589,12 @@ const byTime = (a,b) => new Date(a.at) - new Date(b.at);
 
 function render(){
   const now = new Date();
-  const timed = DB.items.filter(i=>i.at);
-  const pend = timed.filter(i=>!i.done);
+  const pend = live().filter(i=>i.at && !i.done);
 
-  /* header */
   const nm = S().name;
-  const hr = now.getHours();
   $('hTitle').textContent = nm ? `สวัสดี ${nm}` : 'งานของฉัน';
-  $('hIcon').textContent = hr<5?'🌙':hr<12?'🌤️':hr<18?'☀️':'🌙';
   $('hSub').textContent = now.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-  /* stats */
   const today = pend.filter(i=>dayDiff(i.at,now)===0);
   const week  = pend.filter(i=>{ const d=dayDiff(i.at,now); return d>=0 && d<=7; });
   const late  = pend.filter(i=>new Date(i.at)<now);
@@ -571,28 +602,22 @@ function render(){
   $('sWeek').textContent  = week.length;
   $('sLate').textContent  = late.length;
 
-  const bt = $('bToday');
   const badge = today.length + late.length;
-  bt.style.display = badge ? 'flex' : 'none';
-  bt.textContent = badge;
+  $('bToday').style.display = badge ? 'flex' : 'none';
+  $('bToday').textContent = badge;
 
-  /* upcoming */
   const up = pend.slice().sort(byTime).filter(i=>dayDiff(i.at,now)<=7).slice(0,8);
-  $('upcomingList').innerHTML = up.length
-    ? up.map(itemHTML).join('')
-    : `<div class="empty"><span class="e">🎉</span>ไม่มีนัดหมายหรืองานค้างใน 7 วันนี้<br>กดปุ่ม <b>+</b> เพื่อเพิ่มรายการใหม่</div>`;
+  $('upcomingList').innerHTML = up.length ? up.map(itemHTML).join('')
+    : `<div class="empty"><span class="e">✓</span>ไม่มีนัดหมายหรืองานค้างใน 7 วันนี้<br>กดปุ่ม <b>+</b> เพื่อเพิ่มรายการใหม่</div>`;
   bindList($('upcomingList'));
 
-  /* recent notes */
-  const notes = DB.items.filter(i=>i.kind==='note').sort((a,b)=>b.created-a.created);
-  $('recentNotes').innerHTML = notes.length
-    ? notes.slice(0,4).map(itemHTML).join('')
-    : `<div class="empty"><span class="e">🗒️</span>ยังไม่มีบันทึก<br>จดความคืบหน้าหรือสรุปงานไว้ที่นี่ได้</div>`;
+  const notes = live().filter(i=>i.kind==='note').sort((a,b)=>b.created-a.created);
+  $('recentNotes').innerHTML = notes.length ? notes.slice(0,4).map(itemHTML).join('')
+    : `<div class="empty"><span class="e">📝</span>ยังไม่มีบันทึก<br>จดความคืบหน้าหรือสรุปงานไว้ที่นี่ได้</div>`;
   bindList($('recentNotes'));
 
-  renderPlan();
-  renderNotes();
-  $('cntAll').textContent = DB.items.length + ' รายการ';
+  renderPlan(); renderNotes();
+  $('cntAll').textContent = live().length + ' รายการ';
   $('userName').value = S().name || '';
 }
 
@@ -607,15 +632,11 @@ $('q').addEventListener('input', renderPlan);
 $('qn').addEventListener('input', renderNotes);
 
 function renderPlan(){
-  const q = $('q').value.trim().toLowerCase();
-  const now = new Date();
-  let list = DB.items.filter(i=>i.kind!=='note');
-
+  const q = $('q').value.trim().toLowerCase(), now = new Date();
+  let list = live().filter(i=>i.kind!=='note');
   if(planFilter==='upcoming') list = list.filter(i=>!i.done);
   else if(planFilter==='done') list = list.filter(i=>i.done);
-
-  if(q) list = list.filter(i =>
-    (i.title+' '+(i.note||'')+' '+(i.tags||[]).join(' ')).toLowerCase().includes(q));
+  if(q) list = list.filter(i => (i.title+' '+(i.note||'')+' '+(i.tags||[]).join(' ')).toLowerCase().includes(q));
 
   list.sort((a,b)=>{
     if(!a.at) return 1; if(!b.at) return -1;
@@ -623,10 +644,9 @@ function renderPlan(){
   });
 
   if(!list.length){
-    $('planList').innerHTML = `<div class="empty"><span class="e">📭</span>${q?'ไม่พบรายการที่ค้นหา':'ยังไม่มีรายการในหมวดนี้'}</div>`;
+    $('planList').innerHTML = `<div class="empty"><span class="e">—</span>${q?'ไม่พบรายการที่ค้นหา':'ยังไม่มีรายการในหมวดนี้'}</div>`;
     return;
   }
-
   let html = '', lastDay = null;
   list.forEach(i=>{
     const key = i.at ? startOfDay(i.at).getTime() : 'none';
@@ -643,85 +663,63 @@ function renderPlan(){
 
 function renderNotes(){
   const q = $('qn').value.trim().toLowerCase();
-  let list = DB.items.filter(i=>i.kind==='note').sort((a,b)=>b.created-a.created);
+  let list = live().filter(i=>i.kind==='note').sort((a,b)=>b.created-a.created);
   if(q) list = list.filter(i => (i.title+' '+(i.note||'')+' '+(i.tags||[]).join(' ')).toLowerCase().includes(q));
-
-  $('notesList').innerHTML = list.length
-    ? list.map(itemHTML).join('')
+  $('notesList').innerHTML = list.length ? list.map(itemHTML).join('')
     : `<div class="empty"><span class="e">📝</span>${q?'ไม่พบบันทึกที่ค้นหา':'ยังไม่มีบันทึก<br>กดปุ่ม + แล้วเลือก “บันทึก” เพื่อจดอัปเดตงาน'}</div>`;
   bindList($('notesList'));
 }
 
 /* ================= notifications ================= */
 let timers = [];
-
-function remindAt(it){
-  return it.at && it.remind!=null ? new Date(it.at).getTime() - it.remind*60000 : null;
-}
+const remindAt = it => (it.at && it.remind!=null) ? new Date(it.at).getTime() - it.remind*60000 : null;
 
 function scheduleAll(){
   timers.forEach(clearTimeout); timers = [];
-  if(Notification?.permission !== 'granted') return;
+  if(typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
   const now = Date.now();
-  DB.items.filter(i=>!i.done && i.at && i.remind!=null).forEach(it=>{
-    const t = remindAt(it), delay = t - now;
-    if(delay > 0 && delay < 86400000*2){
-      timers.push(setTimeout(()=>fire(it), delay));
-    }
+  live().filter(i=>!i.done && i.at && i.remind!=null).forEach(it=>{
+    const delay = remindAt(it) - now;
+    if(delay > 0 && delay < 86400000*2) timers.push(setTimeout(()=>fire(it), delay));
   });
 }
 
 function fire(it){
   markFired(it.id);
-  const body = (it.at ? fmtFull(it.at) : '') + (it.note ? '\n' + it.note : '');
   const opts = {
-    body, icon:'icons/icon-192.png', badge:'icons/icon-192.png',
-    tag:'wl-'+it.id, vibrate:[200,80,200], requireInteraction:true,
-    data:{ url:location.href }
+    body:(it.at ? fmtFull(it.at) : '') + (it.note ? '\n' + it.note : ''),
+    icon:'icons/icon-192.png', badge:'icons/icon-192.png',
+    tag:'wl-'+it.id, vibrate:[200,80,200], requireInteraction:true
   };
   try{
-    if(navigator.serviceWorker?.controller){
+    if(navigator.serviceWorker?.controller)
       navigator.serviceWorker.ready.then(r=>r.showNotification(KIND[it.kind].ic+' '+it.title, opts));
-    }else{
-      new Notification(KIND[it.kind].ic+' '+it.title, opts);
-    }
+    else new Notification(KIND[it.kind].ic+' '+it.title, opts);
   }catch(e){ console.warn(e); }
   render();
 }
+function markFired(id){ S().fired = [...new Set([...(S().fired||[]), id])]; save(); }
 
-function markFired(id){
-  S().fired = [...new Set([...(S().fired||[]), id])];
-  save();
-}
-
-/* missed reminders on open */
 function checkMissed(){
   if(S().digest === false){ $('missedBanner').innerHTML=''; return; }
   const now = Date.now(), fired = S().fired || [];
-  const missed = DB.items.filter(i=>{
-    if(i.done || !i.at || i.remind==null || fired.includes(i.id)) return false;
-    return remindAt(i) <= now;
-  });
-  if(!missed.length){ $('missedBanner').innerHTML=''; return; }
+  const missed = live().filter(i=>
+    !i.done && i.at && i.remind!=null && !fired.includes(i.id) && remindAt(i) <= now);
 
+  if(!missed.length){ $('missedBanner').innerHTML=''; return; }
   $('missedBanner').innerHTML = `<div class="banner">
-    <b>🔔 มี ${missed.length} รายการถึงกำหนดแล้ว</b><br>
+    <b>มี ${missed.length} รายการถึงกำหนดแล้ว</b><br>
     ${missed.slice(0,4).map(m=>'• '+esc(m.title)+' — '+esc(fmtFull(m.at))).join('<br>')}
     ${missed.length>4 ? '<br>และอีก '+(missed.length-4)+' รายการ' : ''}
     <button class="btn ghost sm" id="ackMissed">รับทราบทั้งหมด</button>
   </div>`;
-  $('ackMissed').addEventListener('click', ()=>{
-    missed.forEach(m=>markFired(m.id));
-    checkMissed();
-  });
+  $('ackMissed').addEventListener('click', ()=>{ missed.forEach(m=>markFired(m.id)); checkMissed(); });
 
-  if(Notification?.permission === 'granted' && missed.length){
-    const it = missed[0];
-    const more = missed.length>1 ? ` และอีก ${missed.length-1} รายการ` : '';
+  if(typeof Notification !== 'undefined' && Notification.permission === 'granted'){
+    const it = missed[0], more = missed.length>1 ? ` และอีก ${missed.length-1} รายการ` : '';
     try{
-      navigator.serviceWorker?.ready.then(r=>r.showNotification('🔔 มีงานถึงกำหนดแล้ว',{
-        body: it.title + more, icon:'icons/icon-192.png', tag:'wl-digest', vibrate:[200,80,200]
-      }));
+      navigator.serviceWorker?.ready.then(r=>r.showNotification('มีงานถึงกำหนดแล้ว',{
+        body: it.title + more, icon:'icons/icon-192.png', tag:'wl-digest', vibrate:[200,80,200] }));
     }catch(e){}
   }
 }
@@ -732,9 +730,8 @@ function permUI(){
   const box = $('permBanner');
   if(p === 'granted' || p === 'unsupported'){ box.innerHTML = ''; return; }
   box.innerHTML = `<div class="banner info">
-    <b>เปิดการแจ้งเตือนไหม?</b><br>
-    ระบบจะเด้งเตือนบนหน้าล็อกเมื่อใกล้ถึงเวลานัดหมาย
-    <button class="btn sm" id="askPerm" style="background:linear-gradient(135deg,var(--accent),#8b7cf0);color:#fff;">เปิดการแจ้งเตือน</button>
+    <b>เปิดการแจ้งเตือนไหม?</b> ระบบจะเด้งเตือนบนหน้าล็อกเมื่อใกล้ถึงเวลานัดหมาย
+    <button class="btn sm" id="askPerm" style="background:var(--primary);color:#fff;">เปิดการแจ้งเตือน</button>
   </div>`;
   $('askPerm').addEventListener('click', askPerm);
 }
@@ -742,11 +739,9 @@ function permUI(){
 async function askPerm(){
   if(typeof Notification === 'undefined'){ alert('เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน'); return; }
   const r = await Notification.requestPermission();
-  S().notif = r === 'granted'; save();
-  permUI(); scheduleAll();
+  S().notif = r === 'granted'; save(); permUI(); scheduleAll();
   if(r === 'denied') alert('การแจ้งเตือนถูกปิดไว้ — เปิดได้ที่ ตั้งค่าเบราว์เซอร์ › การตั้งค่าเว็บไซต์ › การแจ้งเตือน');
 }
-
 $('swNotif').addEventListener('click', askPerm);
 $('swDigest').addEventListener('click', ()=>{
   S().digest = !(S().digest !== false); save();
@@ -754,13 +749,191 @@ $('swDigest').addEventListener('click', ()=>{
   checkMissed();
 });
 $('testNotif').addEventListener('click', async ()=>{
-  if(Notification?.permission !== 'granted') return askPerm();
-  const o = { body:'ถ้าเห็นข้อความนี้แปลว่าการแจ้งเตือนพร้อมใช้งานแล้ว 🎉',
-              icon:'icons/icon-192.png', vibrate:[200,80,200], tag:'wl-test' };
+  if(typeof Notification === 'undefined' || Notification.permission !== 'granted') return askPerm();
+  const o = { body:'ถ้าเห็นข้อความนี้แปลว่าการแจ้งเตือนพร้อมใช้งานแล้ว', icon:'icons/icon-192.png',
+              vibrate:[200,80,200], tag:'wl-test' };
   navigator.serviceWorker?.controller
-    ? (await navigator.serviceWorker.ready).showNotification('🔔 ทดสอบการแจ้งเตือน', o)
-    : new Notification('🔔 ทดสอบการแจ้งเตือน', o);
+    ? (await navigator.serviceWorker.ready).showNotification('ทดสอบการแจ้งเตือน', o)
+    : new Notification('ทดสอบการแจ้งเตือน', o);
 });
+
+/* ================= SYNC (GitHub Gist + token) ================= */
+const GIST_DESC = 'worklog-sync-v1 — ข้อมูลแอปงานของฉัน (อย่าลบ)';
+const GIST_FILE = 'worklog-data.json';
+let syncState = 'idle', syncMsg = '';
+
+async function gh(path, opts={}){
+  const res = await fetch('https://api.github.com' + path, {
+    ...opts,
+    headers:{
+      'Authorization':'Bearer ' + S().token,
+      'Accept':'application/vnd.github+json',
+      'X-GitHub-Api-Version':'2022-11-28',
+      ...(opts.body ? {'Content-Type':'application/json'} : {})
+    }
+  });
+  if(res.status === 401) throw new Error('Token ไม่ถูกต้องหรือหมดอายุ');
+  if(res.status === 403) throw new Error('Token ไม่มีสิทธิ์ gist หรือถูกจำกัดจำนวนครั้ง');
+  if(res.status === 404) throw new Error('ไม่พบ gist (อาจถูกลบไปแล้ว)');
+  if(!res.ok) throw new Error('GitHub ตอบกลับ ' + res.status);
+  return res.json();
+}
+
+const payload = () => JSON.stringify({ v:1, updatedAt:Date.now(), items:DB.items }, null, 1);
+const sig = items => items.slice().sort((a,b)=>a.id<b.id?-1:1)
+                          .map(i=>i.id+':'+(i.updated||0)+':'+(i.deleted?'d':'')).join('|');
+
+/* last-write-wins per item id, tombstones included */
+function mergeItems(localArr, remoteArr){
+  const map = new Map();
+  [...remoteArr, ...localArr].forEach(it=>{
+    if(!it || !it.id) return;
+    const cur = map.get(it.id);
+    if(!cur || (it.updated||0) >= (cur.updated||0)) map.set(it.id, it);
+  });
+  const cutoff = Date.now() - 60*86400000;         // purge tombstones older than 60 days
+  return [...map.values()].filter(i => !(i.deleted && (i.updated||0) < cutoff));
+}
+
+async function findGist(){
+  const list = await gh('/gists?per_page=100');
+  const found = list.find(g => g.description === GIST_DESC || g.files?.[GIST_FILE]);
+  return found ? found.id : null;
+}
+async function createGist(){
+  const g = await gh('/gists', { method:'POST', body: JSON.stringify({
+    description: GIST_DESC, public: false, files: { [GIST_FILE]: { content: payload() } } }) });
+  return g.id;
+}
+async function readGist(id){
+  const g = await gh('/gists/' + id);
+  const f = g.files?.[GIST_FILE];
+  if(!f) return { items: [] };
+  const raw = f.truncated ? await (await fetch(f.raw_url)).text() : f.content;
+  try{ const d = JSON.parse(raw); return Array.isArray(d.items) ? d : { items: [] }; }
+  catch(e){ return { items: [] }; }
+}
+const writeGist = id => gh('/gists/' + id, { method:'PATCH',
+  body: JSON.stringify({ files: { [GIST_FILE]: { content: payload() } } }) });
+
+function setSync(st, msg){
+  syncState = st; syncMsg = msg || '';
+  const chip = $('syncChip');
+  if(!S().token){ chip.style.display = 'none'; syncUI(); return; }
+  chip.style.display = 'flex';
+  chip.className = 'syncchip ' + (st==='ok'?'ok': st==='syncing'||st==='pending'?'busy': st==='err'?'err':'');
+  $('syncTxt').textContent = st==='syncing' ? 'กำลังซิงค์' : st==='pending' ? 'รอซิงค์'
+                           : st==='ok' ? 'ซิงค์แล้ว' : st==='err' ? 'ซิงค์ไม่สำเร็จ' : 'พร้อม';
+  syncUI();
+}
+
+let syncing = false, pushTimer = null;
+
+async function syncNow(){
+  if(!S().token || syncing) return;
+  if(!navigator.onLine){ setSync('err','ออฟไลน์อยู่ — จะซิงค์ให้เมื่อกลับมาออนไลน์'); return; }
+  syncing = true; setSync('syncing');
+  try{
+    let id = S().gistId;
+    if(!id){ id = await findGist(); if(id){ S().gistId = id; save(); } }
+
+    if(!id){                                   // first device — create the gist
+      id = await createGist(); S().gistId = id; save();
+    }else{
+      const remote = await readGist(id);
+      const merged = mergeItems(DB.items, remote.items || []);
+      const changed = sig(merged) !== sig(remote.items || []);
+      DB.items = merged; save();
+      if(changed) await writeGist(id);
+    }
+    S().lastSync = Date.now(); save();
+    setSync('ok'); render(); scheduleAll(); checkMissed();
+  }catch(e){
+    setSync('err', e.message);
+  }finally{ syncing = false; }
+}
+
+function queuePush(){
+  if(!S().token) return;
+  clearTimeout(pushTimer);
+  setSync('pending');
+  pushTimer = setTimeout(syncNow, 2500);
+}
+
+function syncUI(){
+  const box = $('syncBox');
+  if(!box) return;
+  if(!S().token){
+    box.innerHTML = `
+      <div style="font-size:.83rem;color:var(--text2);line-height:1.7;">
+        ใช้ <b>GitHub Token</b> เก็บข้อมูลไว้ใน Gist ส่วนตัวของคุณ
+        เพื่อเปิดดูและแก้ไขข้อมูลชุดเดียวกันได้จากทุกเครื่อง
+      </div>
+      <ol class="howto">
+        <li>เปิด <a href="https://github.com/settings/tokens/new?scopes=gist&description=Work%20Dashboard" target="_blank" rel="noopener">หน้าสร้าง Token ของ GitHub</a> (ติ๊กเฉพาะ <b>gist</b>)</li>
+        <li>เลือกวันหมดอายุ แล้วกด <b>Generate token</b></li>
+        <li>คัดลอกโค้ดที่ขึ้นต้นด้วย <b>ghp_</b> มาวางด้านล่าง</li>
+        <li>เครื่องอื่นใช้ token เดิมนี้ ระบบจะหาข้อมูลเจอเองอัตโนมัติ</li>
+      </ol>
+      <label>GitHub Personal Access Token</label>
+      <input class="mono" id="tokenIn" type="password" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+      <button class="btn" id="connectBtn">เชื่อมต่อและซิงค์</button>
+      <div id="syncErr"></div>
+      <div class="banner" style="margin:14px 0 0;">
+        <b>ความปลอดภัย:</b> Token ถูกเก็บไว้ในเครื่องนี้เท่านั้น และควรให้สิทธิ์แค่ <b>gist</b>
+        อย่างเดียว หากใช้เครื่องสาธารณะให้กดตัดการเชื่อมต่อทุกครั้งที่เลิกใช้
+      </div>`;
+    $('connectBtn').addEventListener('click', connect);
+    $('tokenIn').addEventListener('keydown', e=>{ if(e.key==='Enter') connect(); });
+  }else{
+    box.innerHTML = `
+      <div class="banner ok" style="margin-bottom:12px;">
+        <b>เชื่อมต่อแล้ว</b> — ข้อมูลถูกซิงค์กับ Gist ส่วนตัวในบัญชี GitHub ของคุณ
+      </div>
+      <div class="kv"><div class="k">บัญชี</div><div class="v">${esc(S().ghUser || '—')}</div></div>
+      <div class="kv"><div class="k">ซิงค์ล่าสุด</div><div class="v" id="lastSyncTxt">${esc(ago(S().lastSync))}</div></div>
+      <div class="kv"><div class="k">สถานะ</div><div class="v">${
+        syncState==='err' ? '<span style="color:var(--red)">'+esc(syncMsg||'ผิดพลาด')+'</span>'
+        : syncState==='syncing' ? 'กำลังซิงค์...' : 'ปกติ'}</div></div>
+      <div class="kv"><div class="k">ซิงค์อัตโนมัติ<small>ซิงค์ทุกครั้งที่แก้ข้อมูลและตอนเปิดแอป</small></div>
+        <div class="sw ${S().autoSync!==false?'on':''}" id="swAuto"></div></div>
+      <button class="btn" id="syncNowBtn">ซิงค์เดี๋ยวนี้</button>
+      <button class="btn ghost sm" id="disconnectBtn">ตัดการเชื่อมต่อ</button>`;
+    $('syncNowBtn').addEventListener('click', syncNow);
+    $('swAuto').addEventListener('click', ()=>{
+      S().autoSync = S().autoSync === false; save(); syncUI();
+    });
+    $('disconnectBtn').addEventListener('click', ()=>{
+      if(!confirm('ตัดการเชื่อมต่อ? ข้อมูลในเครื่องยังอยู่ครบ และ Gist บน GitHub ก็ไม่ถูกลบ')) return;
+      delete S().token; delete S().gistId; delete S().ghUser; delete S().lastSync;
+      save(); setSync('idle'); $('syncChip').style.display='none'; syncUI();
+    });
+  }
+}
+
+async function connect(){
+  const t = $('tokenIn').value.trim();
+  const errBox = $('syncErr');
+  if(!t){ $('tokenIn').focus(); return; }
+  $('connectBtn').disabled = true;
+  $('connectBtn').textContent = 'กำลังเชื่อมต่อ...';
+  errBox.innerHTML = '';
+  S().token = t;
+  try{
+    const me = await gh('/user');
+    S().ghUser = me.login; save();
+    await syncNow();
+    if(syncState === 'err') throw new Error(syncMsg);
+    syncUI();
+  }catch(e){
+    delete S().token; delete S().ghUser; save();
+    syncUI();
+    const box = $('syncErr');
+    if(box) box.innerHTML = `<div class="banner err" style="margin:12px 0 0;"><b>เชื่อมต่อไม่สำเร็จ:</b> ${esc(e.message)}</div>`;
+  }
+}
+
+addEventListener('online', ()=>{ if(S().token && S().autoSync !== false) syncNow(); });
 
 /* ================= install (PWA) ================= */
 let deferredPrompt = null;
@@ -769,27 +942,24 @@ const isStandalone = matchMedia('(display-mode: standalone)').matches || navigat
 function installUI(){
   const box = $('installBox');
   if(isStandalone){
-    box.innerHTML = `<div class="banner" style="margin:0;"><b>✅ ติดตั้งแล้ว</b><br>
-      คุณกำลังเปิดจากไอคอนบนหน้าจอโฮมอยู่</div>`;
+    box.innerHTML = `<div class="banner ok" style="margin:0;"><b>ติดตั้งแล้ว</b> — คุณกำลังเปิดจากไอคอนบนหน้าจอโฮมอยู่</div>`;
     return;
   }
   if(deferredPrompt){
-    box.innerHTML = `<div style="font-size:.85rem;color:var(--muted);line-height:1.6;">
+    box.innerHTML = `<div style="font-size:.83rem;color:var(--text2);line-height:1.7;">
       เพิ่มลงหน้าจอโฮมเพื่อเปิดได้เร็ว เต็มจอเหมือนแอป และใช้งานออฟไลน์ได้</div>
-      <button class="btn gold" id="doInstall">📲 เพิ่มลงหน้าจอโฮม</button>`;
+      <button class="btn" id="doInstall">เพิ่มลงหน้าจอโฮม</button>`;
     $('doInstall').addEventListener('click', async ()=>{
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
+      deferredPrompt.prompt(); await deferredPrompt.userChoice;
       deferredPrompt = null; installUI();
     });
     return;
   }
-  box.innerHTML = `<div style="font-size:.85rem;color:var(--muted);line-height:1.75;">
-    <b style="color:var(--accent2)">Chrome บน Android:</b><br>
+  box.innerHTML = `<div style="font-size:.83rem;color:var(--text2);line-height:1.8;">
+    <b style="color:var(--primary)">Chrome บน Android:</b><br>
     แตะเมนู <b>⋮</b> มุมขวาบน › <b>เพิ่มลงในหน้าจอหลัก</b> › <b>ติดตั้ง</b><br><br>
-    <b style="color:var(--accent2)">Safari บน iPhone:</b><br>
-    แตะปุ่มแชร์ <b>􀈂</b> › <b>Add to Home Screen</b>
-  </div>`;
+    <b style="color:var(--primary)">Safari บน iPhone:</b><br>
+    แตะปุ่มแชร์ › <b>Add to Home Screen</b></div>`;
 }
 addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredPrompt = e; installUI(); });
 addEventListener('appinstalled', ()=>{ deferredPrompt = null; installUI(); });
@@ -802,7 +972,7 @@ $('saveName').addEventListener('click', ()=>{
 });
 
 $('expBtn').addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify(DB,null,2)], {type:'application/json'});
+  const blob = new Blob([JSON.stringify({items:DB.items},null,2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `worklog-backup-${new Date().toISOString().slice(0,10)}.json`;
@@ -817,20 +987,21 @@ $('impFile').addEventListener('change', e=>{
     try{
       const d = JSON.parse(rd.result);
       if(!Array.isArray(d.items)) throw new Error('bad');
-      if(!confirm(`กู้คืน ${d.items.length} รายการ? ข้อมูลปัจจุบันจะถูกแทนที่`)) return;
-      DB = Object.assign({items:[],settings:{}}, d);
-      save(); render(); scheduleAll(); checkMissed();
-      alert('กู้คืนข้อมูลเรียบร้อย ✓');
+      if(!confirm(`รวม ${d.items.length} รายการเข้ากับข้อมูลปัจจุบัน?`)) return;
+      DB.items = mergeItems(DB.items, d.items);
+      save(); render(); scheduleAll(); checkMissed(); queuePush();
+      alert('กู้คืนข้อมูลเรียบร้อย');
     }catch(err){ alert('ไฟล์ไม่ถูกต้อง'); }
   };
   rd.readAsText(f); e.target.value = '';
 });
 
 $('wipeBtn').addEventListener('click', ()=>{
-  if(!confirm('ลบข้อมูลทั้งหมดถาวร? แนะนำให้ดาวน์โหลดไฟล์สำรองก่อน')) return;
-  if(!confirm('ยืนยันอีกครั้ง — ข้อมูลจะหายทั้งหมด')) return;
-  DB = { items:[], settings:{ name:'', digest:true, fired:[] } };
-  save(); render(); scheduleAll(); checkMissed();
+  if(!confirm('ลบข้อมูลทั้งหมด? แนะนำให้ดาวน์โหลดไฟล์สำรองก่อน')) return;
+  if(!confirm('ยืนยันอีกครั้ง — ข้อมูลจะถูกลบทั้งหมด')) return;
+  const now = Date.now();
+  DB.items.forEach(i=>{ i.deleted = true; i.updated = now; });   // syncs the wipe too
+  save(); render(); scheduleAll(); checkMissed(); queuePush();
 });
 
 /* ================= boot ================= */
@@ -840,10 +1011,14 @@ if('serviceWorker' in navigator){
 
 render(); permUI(); installUI(); scheduleAll(); checkMissed();
 $('swDigest').classList.toggle('on', S().digest !== false);
+if(S().token){ setSync('idle'); if(S().autoSync !== false) syncNow(); } else syncUI();
 
 setInterval(()=>{ render(); checkMissed(); }, 60000);
 document.addEventListener('visibilitychange', ()=>{
-  if(!document.hidden){ render(); scheduleAll(); checkMissed(); }
+  if(!document.hidden){
+    render(); scheduleAll(); checkMissed();
+    if(S().token && S().autoSync !== false) syncNow();
+  }
 });
 </script>
 </body>

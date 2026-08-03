@@ -1,5 +1,5 @@
 /* service worker — offline cache + notification click handling */
-const CACHE = 'worklog-v1';
+const CACHE = 'worklog-v2';
 const ASSETS = [
   './',
   './index.html',
