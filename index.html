@@ -2,444 +2,849 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Insider — เกมบอร์ดจับไส้ศึก 🕵️</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#6c5ce7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="งานของฉัน">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>งานของฉัน — แดชบอร์ดนัดหมายและแจ้งเตือน</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent;
-      font-family: 'Prompt', 'Segoe UI', system-ui, sans-serif; }
+  *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root{
+    --bg:#0e1020; --bg2:#151831; --card:#1b1f3b; --card2:#232848;
+    --line:rgba(255,255,255,.08);
+    --accent:#6c5ce7; --accent2:#a29bfe; --gold:#ffd166;
+    --red:#ff6b6b; --green:#51cf66; --blue:#4dabf7;
+    --text:#f1f3ff; --muted:#8f96c4;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  html,body{ height:100%; }
+  body{
+    font-family:'Prompt','Noto Sans Thai',system-ui,-apple-system,'Segoe UI',sans-serif;
+    background:var(--bg); color:var(--text);
+    overscroll-behavior-y:none; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:520px; margin:0 auto; min-height:100%; display:flex; flex-direction:column; }
 
-  :root {
-    --bg: #0f1226;
-    --card: #1b1f3b;
-    --card2: #262b52;
-    --accent: #6c5ce7;
-    --accent2: #a29bfe;
-    --gold: #ffd166;
-    --danger: #ff6b6b;
-    --good: #51cf66;
-    --text: #f1f3ff;
-    --muted: #9aa0c9;
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:40;
+    padding:calc(env(safe-area-inset-top,0px) + 16px) 18px 14px;
+    background:linear-gradient(180deg,#1a1e3d,rgba(14,16,32,.92));
+    backdrop-filter:blur(12px); border-bottom:1px solid var(--line);
+  }
+  .topbar h1{ font-size:1.25rem; font-weight:700; letter-spacing:.2px; display:flex; align-items:center; gap:8px; }
+  .topbar .sub{ color:var(--muted); font-size:.78rem; margin-top:3px; }
+
+  main{ flex:1; padding:16px 16px calc(150px + var(--safe-b)); }
+  .tab{ display:none; animation:in .25s ease; }
+  .tab.on{ display:block; }
+  @keyframes in{ from{opacity:0; transform:translateY(6px);} to{opacity:1;transform:none;} }
+
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; margin-bottom:14px; }
+  .card.flat{ background:var(--bg2); }
+
+  h2.sec{ font-size:.82rem; color:var(--muted); font-weight:600; margin:20px 4px 10px; letter-spacing:.4px; text-transform:uppercase; }
+  h2.sec:first-child{ margin-top:4px; }
+
+  /* ---------- stats ---------- */
+  .stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:6px; }
+  .stat{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 10px; text-align:center; }
+  .stat .n{ font-size:1.7rem; font-weight:800; line-height:1.1; }
+  .stat .l{ font-size:.7rem; color:var(--muted); margin-top:4px; }
+  .stat.a .n{ color:var(--gold); } .stat.b .n{ color:var(--blue); } .stat.c .n{ color:var(--red); }
+
+  /* ---------- item ---------- */
+  .item{
+    display:flex; gap:12px; align-items:flex-start;
+    background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent);
+    border-radius:14px; padding:13px 14px; margin-bottom:10px; cursor:pointer;
+    transition:transform .1s, background .15s;
+  }
+  .item:active{ transform:scale(.985); background:var(--card2); }
+  .item.appt{ border-left-color:var(--gold); }
+  .item.task{ border-left-color:var(--blue); }
+  .item.note{ border-left-color:var(--accent2); }
+  .item.done{ opacity:.45; }
+  .item.done .t{ text-decoration:line-through; }
+  .item.late{ border-left-color:var(--red); background:rgba(255,107,107,.07); }
+  .item .ic{ font-size:1.3rem; line-height:1.4; }
+  .item .body{ flex:1; min-width:0; }
+  .item .t{ font-weight:600; font-size:.98rem; word-break:break-word; }
+  .item .m{ color:var(--muted); font-size:.76rem; margin-top:3px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .item .d{ color:var(--muted); font-size:.82rem; margin-top:6px; white-space:pre-wrap; word-break:break-word; }
+  .chk{
+    width:26px; height:26px; border-radius:9px; border:2px solid var(--line);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    background:var(--card2); font-size:.85rem; margin-top:2px;
+  }
+  .chk.on{ background:var(--green); border-color:var(--green); color:#08320f; }
+  .tag{ background:var(--card2); padding:2px 9px; border-radius:999px; font-size:.68rem; color:var(--accent2); }
+  .tag.red{ color:var(--red); background:rgba(255,107,107,.14); }
+  .tag.gold{ color:var(--gold); background:rgba(255,209,102,.12); }
+  .tag.green{ color:var(--green); background:rgba(81,207,102,.12); }
+
+  .empty{ text-align:center; color:var(--muted); padding:34px 18px; font-size:.88rem; line-height:1.7; }
+  .empty .e{ font-size:2.4rem; display:block; margin-bottom:8px; opacity:.7; }
+
+  /* ---------- form ---------- */
+  label{ display:block; font-size:.78rem; color:var(--muted); margin:14px 0 6px; font-weight:500; }
+  label:first-child{ margin-top:0; }
+  input,textarea,select{
+    width:100%; padding:13px 14px; border-radius:12px; border:1px solid var(--line);
+    background:var(--card2); color:var(--text); font-size:1rem; outline:none;
+    font-family:inherit;
+  }
+  input:focus,textarea:focus,select:focus{ border-color:var(--accent2); }
+  textarea{ resize:vertical; min-height:84px; }
+  select{ appearance:none; background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:calc(100% - 20px) 21px, calc(100% - 14px) 21px; background-size:6px 6px; background-repeat:no-repeat; padding-right:40px; }
+  .row{ display:flex; gap:10px; }
+  .row>*{ flex:1; min-width:0; }
+
+  .seg{ display:flex; gap:8px; background:var(--bg2); padding:5px; border-radius:14px; }
+  .seg button{
+    flex:1; padding:11px 4px; border:none; border-radius:10px; background:transparent;
+    color:var(--muted); font-size:.85rem; font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .seg button.on{ background:var(--accent); color:#fff; box-shadow:0 4px 12px rgba(108,92,231,.4); }
+
+  .btn{
+    width:100%; padding:15px; border:none; border-radius:14px; cursor:pointer;
+    background:linear-gradient(135deg,var(--accent),#8b7cf0); color:#fff;
+    font-size:1rem; font-weight:600; font-family:inherit; margin-top:16px;
+    box-shadow:0 6px 18px rgba(108,92,231,.35); transition:transform .1s;
+  }
+  .btn:active{ transform:scale(.975); }
+  .btn.ghost{ background:transparent; border:1px solid var(--line); color:var(--muted); box-shadow:none; }
+  .btn.danger{ background:transparent; border:1px solid rgba(255,107,107,.4); color:var(--red); box-shadow:none; }
+  .btn.gold{ background:linear-gradient(135deg,var(--gold),#f5b731); color:#3d2c00; box-shadow:0 6px 18px rgba(245,183,49,.3); }
+  .btn.sm{ padding:11px; font-size:.88rem; margin-top:10px; }
+
+  /* ---------- fab ---------- */
+  .fab{
+    position:fixed; right:calc(50% - 260px + 18px); bottom:calc(84px + var(--safe-b));
+    width:58px; height:58px; border-radius:20px; border:none; z-index:45;
+    background:linear-gradient(135deg,var(--accent),#8b7cf0); color:#fff; font-size:1.9rem;
+    box-shadow:0 8px 24px rgba(108,92,231,.5); cursor:pointer; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  @media(max-width:556px){ .fab{ right:18px; } }
+  .fab:active{ transform:scale(.93); }
+
+  /* ---------- tabbar ---------- */
+  .tabbar{
+    position:fixed; bottom:0; left:0; right:0; z-index:50;
+    display:flex; max-width:520px; margin:0 auto;
+    background:rgba(21,24,49,.96); backdrop-filter:blur(16px);
+    border-top:1px solid var(--line); padding-bottom:var(--safe-b);
+  }
+  .tabbar button{
+    flex:1; padding:11px 2px 10px; border:none; background:transparent; cursor:pointer;
+    color:var(--muted); font-family:inherit; font-size:.65rem; display:flex;
+    flex-direction:column; align-items:center; gap:3px; position:relative;
+  }
+  .tabbar button .i{ font-size:1.25rem; line-height:1; }
+  .tabbar button.on{ color:var(--accent2); }
+  .tabbar button.on::before{
+    content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:26px; height:3px; border-radius:0 0 4px 4px; background:var(--accent2);
+  }
+  .badge{
+    position:absolute; top:6px; right:calc(50% - 20px); background:var(--red); color:#fff;
+    font-size:.6rem; min-width:16px; height:16px; border-radius:999px; padding:0 4px;
+    display:flex; align-items:center; justify-content:center; font-weight:700;
   }
 
-  body {
-    background: radial-gradient(circle at 30% 0%, #1e2450, #0f1226 60%);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    padding: 20px 16px 40px;
+  /* ---------- sheet ---------- */
+  .scrim{
+    position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:60; opacity:0;
+    pointer-events:none; transition:opacity .25s; backdrop-filter:blur(2px);
   }
-
-  .app { width: 100%; max-width: 460px; }
-
-  header { text-align: center; margin-bottom: 20px; }
-  header h1 { font-size: 1.9rem; letter-spacing: 1px; }
-  header h1 .eye { filter: drop-shadow(0 0 8px var(--accent2)); }
-  header p { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
-
-  .screen { display: none; animation: fade 0.3s ease; }
-  .screen.active { display: block; }
-  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-
-  .card {
-    background: var(--card);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 20px;
-    padding: 22px;
-    margin-bottom: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  .scrim.on{ opacity:1; pointer-events:auto; }
+  .sheet{
+    position:fixed; left:0; right:0; bottom:0; z-index:61; max-width:520px; margin:0 auto;
+    background:var(--bg2); border-radius:24px 24px 0 0; border-top:1px solid var(--line);
+    padding:10px 18px calc(24px + var(--safe-b)); transform:translateY(102%);
+    transition:transform .3s cubic-bezier(.32,.72,0,1); max-height:92vh; overflow-y:auto;
   }
+  .sheet.on{ transform:none; }
+  .grab{ width:40px; height:4px; border-radius:99px; background:var(--line); margin:0 auto 14px; }
+  .sheet h3{ font-size:1.1rem; margin-bottom:14px; }
 
-  label { display: block; font-size: 0.85rem; color: var(--muted); margin: 14px 0 6px; }
-  label:first-child { margin-top: 0; }
-
-  input, select {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: var(--card2);
-    color: var(--text);
-    font-size: 1.1rem;
-    outline: none;
+  .banner{
+    background:linear-gradient(135deg,rgba(255,209,102,.16),rgba(255,209,102,.06));
+    border:1px solid rgba(255,209,102,.3); border-radius:16px; padding:14px;
+    margin-bottom:14px; font-size:.85rem; line-height:1.6;
   }
-  input:focus, select:focus { border-color: var(--accent2); }
-  input.code { text-transform: uppercase; letter-spacing: 4px; text-align: center; font-weight: bold; font-size: 1.5rem; }
+  .banner b{ color:var(--gold); }
+  .banner.info{ background:linear-gradient(135deg,rgba(108,92,231,.18),rgba(108,92,231,.05)); border-color:rgba(162,155,254,.3); }
+  .banner.info b{ color:var(--accent2); }
 
-  .row { display: flex; gap: 12px; }
-  .row > * { flex: 1; }
+  .kv{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:13px 0; border-bottom:1px solid var(--line); }
+  .kv:last-child{ border-bottom:none; }
+  .kv .k{ font-size:.9rem; }
+  .kv .k small{ display:block; color:var(--muted); font-size:.74rem; margin-top:2px; line-height:1.5; }
+  .sw{ width:50px; height:29px; border-radius:99px; background:var(--card2); border:1px solid var(--line); position:relative; flex-shrink:0; cursor:pointer; }
+  .sw::after{ content:''; position:absolute; top:3px; left:3px; width:21px; height:21px; border-radius:50%; background:var(--muted); transition:.2s; }
+  .sw.on{ background:var(--accent); border-color:var(--accent); }
+  .sw.on::after{ left:24px; background:#fff; }
 
-  button.btn {
-    width: 100%;
-    padding: 16px;
-    border: none;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #fff;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 18px;
-    box-shadow: 0 6px 16px rgba(108,92,231,0.4);
-    transition: transform 0.1s;
-  }
-  button.btn:active { transform: scale(0.97); }
-  button.btn.ghost {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.15);
-    box-shadow: none;
-    color: var(--muted);
-  }
-  button.btn.gold { background: linear-gradient(135deg, #ffd166, #f7b731); color: #3a2c00; box-shadow: 0 6px 16px rgba(247,183,49,0.35); }
+  .day{ font-size:.76rem; color:var(--accent2); font-weight:600; margin:18px 4px 8px; display:flex; align-items:center; gap:8px; }
+  .day::after{ content:''; flex:1; height:1px; background:var(--line); }
+  .day.today{ color:var(--gold); }
 
-  .hint { font-size: 0.8rem; color: var(--muted); line-height: 1.6; margin-top: 10px; }
-  .hint b { color: var(--accent2); }
-
-  .steps { counter-reset: step; list-style: none; margin-top: 8px; }
-  .steps li { position: relative; padding: 8px 0 8px 38px; font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
-  .steps li::before {
-    counter-increment: step; content: counter(step);
-    position: absolute; left: 0; top: 8px;
-    width: 26px; height: 26px; border-radius: 50%;
-    background: var(--card2); color: var(--accent2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.8rem; font-weight: bold;
-  }
-
-  /* Reveal card */
-  .reveal {
-    position: relative;
-    height: 300px;
-    border-radius: 20px;
-    overflow: hidden;
-    cursor: pointer;
-    user-select: none;
-  }
-  .reveal .cover {
-    position: absolute; inset: 0; z-index: 2;
-    background: linear-gradient(135deg, var(--accent), #4834d4);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 10px; transition: opacity 0.3s;
-  }
-  .reveal .cover .lock { font-size: 3rem; }
-  .reveal .cover .txt { font-size: 1rem; }
-  .reveal.open .cover { opacity: 0; pointer-events: none; }
-  .reveal .content {
-    position: absolute; inset: 0; z-index: 1;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 20px;
-  }
-  .role-name { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
-  .role-emoji { font-size: 3.4rem; margin-bottom: 10px; }
-  .role-desc { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
-  .secret-word {
-    margin-top: 16px; padding: 12px 20px;
-    background: rgba(255,209,102,0.12); border: 1px dashed var(--gold);
-    border-radius: 12px; font-size: 1.4rem; font-weight: bold; color: var(--gold);
-  }
-  .role-master { background: linear-gradient(160deg, #2b1a4d, #1b1f3b); }
-  .role-insider { background: linear-gradient(160deg, #4d1a1a, #1b1f3b); }
-  .role-common { background: linear-gradient(160deg, #1a3d4d, #1b1f3b); }
-
-  /* Timer */
-  .timer-display { text-align: center; font-size: 4rem; font-weight: 800; margin: 10px 0; font-variant-numeric: tabular-nums; }
-  .timer-display.warn { color: var(--gold); }
-  .timer-display.danger { color: var(--danger); }
-  .phase-label { text-align: center; color: var(--muted); font-size: 0.9rem; }
-
-  .pill { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--card2); font-size: 0.8rem; color: var(--muted); }
-  .center { text-align: center; }
-  .mt { margin-top: 14px; }
+  .searchbar{ position:relative; margin-bottom:12px; }
+  .searchbar input{ padding-left:40px; }
+  .searchbar span{ position:absolute; left:14px; top:13px; opacity:.5; }
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <h1><span class="eye">🕵️</span> INSIDER</h1>
-    <p>เกมจับไส้ศึก · เล่นหลายเครื่องได้โดยไม่ต้องมีเซิร์ฟเวอร์</p>
-  </header>
+<div class="wrap">
 
-  <!-- HOME -->
-  <section class="screen active" id="screen-home">
-    <div class="card">
-      <label>รหัสห้อง (ทุกคนต้องใส่รหัสเดียวกัน)</label>
-      <input class="code" id="roomCode" maxlength="6" placeholder="เช่น CAT12" autocomplete="off">
-      <div class="row">
-        <button class="btn ghost" id="genCode" style="margin-top:12px;">🎲 สุ่มรหัส</button>
+  <div class="topbar">
+    <h1><span id="hIcon">📋</span> <span id="hTitle">งานของฉัน</span></h1>
+    <div class="sub" id="hSub"></div>
+  </div>
+
+  <main>
+    <!-- ===== TODAY ===== -->
+    <section class="tab on" id="t-today">
+      <div id="permBanner"></div>
+      <div id="missedBanner"></div>
+
+      <div class="stats">
+        <div class="stat a"><div class="n" id="sToday">0</div><div class="l">วันนี้</div></div>
+        <div class="stat b"><div class="n" id="sWeek">0</div><div class="l">7 วันข้างหน้า</div></div>
+        <div class="stat c"><div class="n" id="sLate">0</div><div class="l">เลยกำหนด</div></div>
       </div>
 
-      <label>จำนวนผู้เล่นทั้งหมด</label>
-      <select id="totalPlayers"></select>
+      <h2 class="sec">⏰ กำลังจะถึง</h2>
+      <div id="upcomingList"></div>
 
-      <label>คุณคือผู้เล่นหมายเลข</label>
-      <select id="myNumber"></select>
+      <h2 class="sec">📝 อัปเดตล่าสุด</h2>
+      <div id="recentNotes"></div>
+    </section>
 
-      <button class="btn" id="joinBtn">เข้าเล่น →</button>
-      <p class="hint">
-        💡 <b>วิธีเล่นแบบหลายเครื่อง:</b> ให้ทุกคนเปิดเว็บนี้ ใส่<b>รหัสห้องเดียวกัน</b>
-        และ<b>จำนวนผู้เล่นเท่ากัน</b> จากนั้นแต่ละคนเลือก<b>หมายเลขของตัวเองไม่ให้ซ้ำกัน</b>
-        แล้วเครื่องจะบอกบทบาทลับของแต่ละคนเอง
-      </p>
-    </div>
+    <!-- ===== SCHEDULE ===== -->
+    <section class="tab" id="t-plan">
+      <div class="searchbar"><span>🔍</span><input id="q" placeholder="ค้นหานัดหมาย / งาน..." autocomplete="off"></div>
+      <div class="seg" style="margin-bottom:6px;">
+        <button class="on" data-filter="upcoming">ที่จะถึง</button>
+        <button data-filter="all">ทั้งหมด</button>
+        <button data-filter="done">เสร็จแล้ว</button>
+      </div>
+      <div id="planList"></div>
+    </section>
 
-    <div class="card">
-      <div class="pill">📖 กติกาโดยย่อ</div>
-      <ol class="steps">
-        <li><b>มาสเตอร์</b> รู้คำลับ และเป็นคนตอบคำถาม</li>
-        <li><b>อินไซเดอร์ (ไส้ศึก)</b> ก็รู้คำลับ แอบชี้นำให้กลุ่มทายถูก โดยไม่ถูกจับได้</li>
-        <li><b>ประชาชน</b> ไม่รู้คำลับ ช่วยกันถามคำถามใช่/ไม่ใช่ เพื่อทายคำ</li>
-        <li>ตั้งเวลาถาม-ตอบ ถ้าทายคำถูกทัน → ทุกคนโหวตหาว่าใครคืออินไซเดอร์</li>
-        <li>จับอินไซเดอร์ได้ → ประชาชนชนะ · จับไม่ได้ → อินไซเดอร์ชนะ</li>
-      </ol>
-    </div>
-  </section>
+    <!-- ===== NOTES ===== -->
+    <section class="tab" id="t-notes">
+      <div class="searchbar"><span>🔍</span><input id="qn" placeholder="ค้นหาบันทึก..." autocomplete="off"></div>
+      <div id="notesList"></div>
+    </section>
 
-  <!-- REVEAL -->
-  <section class="screen" id="screen-reveal">
-    <div class="card">
-      <p class="center" style="color:var(--muted);font-size:0.9rem;">
-        ห้อง <b id="showCode" style="color:var(--accent2)"></b> · คุณคือผู้เล่น <b id="showNum"></b>
-      </p>
-      <p class="center hint" style="margin-top:4px;">👆 แตะค้างเพื่อดูบทบาทลับ (อย่าให้คนอื่นเห็น!)</p>
-      <div class="reveal mt" id="revealCard">
-        <div class="cover">
-          <div class="lock">🔒</div>
-          <div class="txt">แตะค้างเพื่อเปิด</div>
+    <!-- ===== SETTINGS ===== -->
+    <section class="tab" id="t-set">
+      <div class="card">
+        <h2 class="sec" style="margin-top:0">โปรไฟล์</h2>
+        <label>ชื่อที่ใช้แสดง</label>
+        <input id="userName" placeholder="เช่น ณัฐภูมิ" autocomplete="off">
+        <button class="btn sm" id="saveName">บันทึกชื่อ</button>
+      </div>
+
+      <div class="card">
+        <h2 class="sec" style="margin-top:0">การแจ้งเตือน</h2>
+        <div class="kv">
+          <div class="k">เปิดการแจ้งเตือน
+            <small>เด้งขึ้นหน้าล็อกของมือถือเมื่อถึงเวลาที่ตั้งไว้</small></div>
+          <div class="sw" id="swNotif"></div>
         </div>
-        <div class="content" id="revealContent"></div>
+        <div class="kv">
+          <div class="k">เตือนสรุปงานตอนเปิดแอป
+            <small>แสดงรายการที่เลยกำหนดทันทีที่เข้าเว็บ</small></div>
+          <div class="sw on" id="swDigest"></div>
+        </div>
+        <button class="btn ghost sm" id="testNotif">🔔 ทดสอบการแจ้งเตือน</button>
+        <div class="banner info" style="margin-top:14px;margin-bottom:0;">
+          <b>ข้อจำกัดที่ควรรู้:</b> เว็บนี้ไม่มีเซิร์ฟเวอร์ การแจ้งเตือนจะทำงานเมื่อแอปเปิดอยู่
+          หรือค้างอยู่เบื้องหลัง ถ้าปิดแอปทิ้งไว้นานๆ ระบบจะเก็บไว้แจ้งให้ทันทีที่เปิดแอปครั้งถัดไป
+        </div>
       </div>
-      <button class="btn gold" id="toTimer">พร้อมแล้ว → ไปหน้าจับเวลา</button>
-      <button class="btn ghost" id="backHome">← กลับหน้าแรก</button>
-    </div>
-  </section>
 
-  <!-- TIMER -->
-  <section class="screen" id="screen-timer">
-    <div class="card">
-      <p class="phase-label" id="phaseLabel">⏱️ เวลาถาม-ตอบ เพื่อทายคำลับ</p>
-      <div class="timer-display" id="timer">05:00</div>
-      <div class="row">
-        <button class="btn" id="startTimer">▶️ เริ่ม</button>
-        <button class="btn ghost" id="resetTimer">↺ รีเซ็ต</button>
+      <div class="card">
+        <h2 class="sec" style="margin-top:0">ติดตั้งลงหน้าจอโฮม</h2>
+        <div id="installBox"></div>
       </div>
-      <label>ตั้งเวลา (นาที)</label>
-      <select id="minutes">
-        <option value="3">3 นาที</option>
-        <option value="5" selected>5 นาที</option>
-        <option value="7">7 นาที</option>
-        <option value="10">10 นาที</option>
-      </select>
-      <div class="hint mt">
-        เมื่อทายคำถูกแล้วให้กดหยุด แล้วทุกคนโหวตหา <b>อินไซเดอร์</b> พร้อมกัน
-        (นับ 3 แล้วชี้) จากนั้นให้มาสเตอร์เปิดเผยว่าใครคืออินไซเดอร์ตัวจริง
+
+      <div class="card">
+        <h2 class="sec" style="margin-top:0">ข้อมูลสำรอง</h2>
+        <div class="kv"><div class="k">รายการทั้งหมด<small id="cntAll">0 รายการ</small></div></div>
+        <button class="btn ghost sm" id="expBtn">⬇️ ดาวน์โหลดไฟล์สำรอง (.json)</button>
+        <button class="btn ghost sm" id="impBtn">⬆️ กู้คืนจากไฟล์สำรอง</button>
+        <input type="file" id="impFile" accept="application/json,.json" style="display:none">
+        <button class="btn danger sm" id="wipeBtn">🗑️ ลบข้อมูลทั้งหมด</button>
+        <div class="banner" style="margin:14px 0 0;">
+          <b>สำคัญ:</b> ข้อมูลเก็บอยู่ในเครื่องนี้เท่านั้น (localStorage) ไม่ได้ส่งขึ้นเซิร์ฟเวอร์
+          ถ้าล้างข้อมูลเบราว์เซอร์ข้อมูลจะหาย — แนะนำให้ดาวน์โหลดไฟล์สำรองเป็นระยะ
+        </div>
       </div>
-      <button class="btn ghost mt" id="newRound">🔄 เริ่มรอบใหม่ (สุ่มบทบาทใหม่)</button>
+    </section>
+  </main>
+
+  <button class="fab" id="fab">+</button>
+
+  <nav class="tabbar">
+    <button class="on" data-tab="today"><span class="i">🏠</span>วันนี้<span class="badge" id="bToday" style="display:none">0</span></button>
+    <button data-tab="plan"><span class="i">📅</span>ตาราง</button>
+    <button data-tab="notes"><span class="i">📝</span>บันทึก</button>
+    <button data-tab="set"><span class="i">⚙️</span>ตั้งค่า</button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- ===== ADD / EDIT SHEET ===== -->
+<div class="sheet" id="sheet">
+  <div class="grab"></div>
+  <h3 id="sheetTitle">เพิ่มรายการใหม่</h3>
+
+  <div class="seg" id="kindSeg">
+    <button class="on" data-kind="appt">📅 นัดหมาย</button>
+    <button data-kind="task">✅ งาน</button>
+    <button data-kind="note">📝 บันทึก</button>
+  </div>
+
+  <label>หัวข้อ</label>
+  <input id="fTitle" placeholder="เช่น ประชุมทีมการตลาด" autocomplete="off">
+
+  <div id="timeFields">
+    <label>วันและเวลา</label>
+    <input type="datetime-local" id="fAt">
+    <div class="row">
+      <div>
+        <label>เตือนล่วงหน้า</label>
+        <select id="fRemind">
+          <option value="">ไม่เตือน</option>
+          <option value="0">ตรงเวลา</option>
+          <option value="5">5 นาที</option>
+          <option value="15" selected>15 นาที</option>
+          <option value="30">30 นาที</option>
+          <option value="60">1 ชั่วโมง</option>
+          <option value="180">3 ชั่วโมง</option>
+          <option value="1440">1 วัน</option>
+        </select>
+      </div>
+      <div>
+        <label>ความสำคัญ</label>
+        <select id="fPri">
+          <option value="normal" selected>ปกติ</option>
+          <option value="high">สำคัญมาก</option>
+          <option value="low">ไม่เร่ง</option>
+        </select>
+      </div>
     </div>
-  </section>
+  </div>
+
+  <label>รายละเอียด / โน้ต</label>
+  <textarea id="fNote" placeholder="รายละเอียดเพิ่มเติม สถานที่ ผู้เข้าร่วม ฯลฯ"></textarea>
+
+  <label>แท็ก (คั่นด้วยจุลภาค)</label>
+  <input id="fTags" placeholder="เช่น ลูกค้า, ด่วน" autocomplete="off">
+
+  <button class="btn" id="saveItem">บันทึก</button>
+  <button class="btn danger sm" id="delItem" style="display:none">ลบรายการนี้</button>
+  <button class="btn ghost sm" id="closeSheet">ยกเลิก</button>
 </div>
 
 <script>
-  // ---------- deterministic RNG ----------
-  function hashSeed(str) {
-    let h = 1779033703 ^ str.length;
-    for (let i = 0; i < str.length; i++) {
-      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
-      h = (h << 13) | (h >>> 19);
-    }
-    return () => {
-      h = Math.imul(h ^ (h >>> 16), 2246822507);
-      h = Math.imul(h ^ (h >>> 13), 3266489909);
-      h = (h ^= h >>> 16) >>> 0;
-      return h / 4294967296;
-    };
-  }
-  function shuffle(arr, rand) {
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
+/* ================= storage ================= */
+const KEY = 'worklog.v1';
+let DB = load();
+
+function load(){
+  try{
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if(d && Array.isArray(d.items)) return Object.assign({items:[],settings:{}}, d);
+  }catch(e){}
+  return { items:[], settings:{ name:'', notif:false, digest:true, fired:[] } };
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(DB)); }
+const S = () => (DB.settings ||= {});
+
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const KIND = {
+  appt:{ ic:'📅', label:'นัดหมาย' },
+  task:{ ic:'✅', label:'งาน' },
+  note:{ ic:'📝', label:'บันทึก' }
+};
+
+function startOfDay(d){ const x=new Date(d); x.setHours(0,0,0,0); return x; }
+function dayDiff(a,b){ return Math.round((startOfDay(a)-startOfDay(b))/86400000); }
+
+function fmtDay(iso){
+  const d = new Date(iso), n = new Date();
+  const diff = dayDiff(d,n);
+  if(diff===0) return 'วันนี้';
+  if(diff===1) return 'พรุ่งนี้';
+  if(diff===2) return 'มะรืนนี้';
+  if(diff===-1) return 'เมื่อวาน';
+  return d.toLocaleDateString('th-TH',{ weekday:'short', day:'numeric', month:'short',
+    year: d.getFullYear()!==n.getFullYear() ? 'numeric' : undefined });
+}
+function fmtTime(iso){
+  return new Date(iso).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}) + ' น.';
+}
+function fmtFull(iso){ return fmtDay(iso) + ' · ' + fmtTime(iso); }
+function relative(iso){
+  const ms = new Date(iso) - Date.now();
+  const abs = Math.abs(ms), mins = Math.round(abs/60000);
+  let s;
+  if(mins < 1) s = 'ไม่ถึงนาที';
+  else if(mins < 60) s = mins + ' นาที';
+  else if(mins < 1440) s = Math.round(mins/60) + ' ชม.';
+  else s = Math.round(mins/1440) + ' วัน';
+  return ms >= 0 ? 'อีก ' + s : 'เลยมา ' + s;
+}
+
+/* ================= tabs ================= */
+document.querySelectorAll('.tabbar button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.tabbar button').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    $('t-'+b.dataset.tab).classList.add('on');
+    $('fab').style.display = b.dataset.tab === 'set' ? 'none' : 'flex';
+    window.scrollTo(0,0);
+  });
+});
+
+/* ================= sheet ================= */
+let editingId = null, kind = 'appt';
+
+function openSheet(item){
+  editingId = item ? item.id : null;
+  kind = item ? item.kind : 'appt';
+  $('sheetTitle').textContent = item ? 'แก้ไขรายการ' : 'เพิ่มรายการใหม่';
+  $('delItem').style.display = item ? 'block' : 'none';
+
+  setKind(kind);
+  $('fTitle').value = item?.title || '';
+  $('fNote').value  = item?.note  || '';
+  $('fTags').value  = (item?.tags || []).join(', ');
+  $('fPri').value   = item?.pri || 'normal';
+  $('fRemind').value = item ? (item.remind ?? '') : '15';
+
+  if(item?.at){
+    $('fAt').value = item.at;
+  }else{
+    const d = new Date(Date.now() + 3600000);
+    d.setMinutes(Math.ceil(d.getMinutes()/15)*15, 0, 0);
+    $('fAt').value = toLocalInput(d);
   }
 
-  // ---------- word list ----------
-  const WORDS = [
-    "ช้าง","ทุเรียน","รถไฟฟ้า","วัดพระแก้ว","ต้มยำกุ้ง","แมวเหมียว","ดวงจันทร์","ร่มกันฝน",
-    "กีตาร์","ภูเขาไฟ","นักบินอวกาศ","ไอศกรีม","ประภาคาร","สายรุ้ง","หุ่นยนต์","ปลาวาฬ",
-    "กาแฟเย็น","ว่าวจุฬา","มังกร","กระเป๋าเดินทาง","นาฬิกาปลุก","สนามบิน","โทรศัพท์","ดินสอ",
-    "ผีเสื้อ","น้ำตก","ลูกโป่ง","กล้องถ่ายรูป","จักรยาน","เตาอบ","สมอเรือ","ปิรามิด"
-  ];
+  $('scrim').classList.add('on');
+  $('sheet').classList.add('on');
+  setTimeout(()=>{ if(!item) $('fTitle').focus(); }, 320);
+}
+function toLocalInput(d){
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function closeSheet(){
+  $('scrim').classList.remove('on');
+  $('sheet').classList.remove('on');
+  editingId = null;
+}
+function setKind(k){
+  kind = k;
+  document.querySelectorAll('#kindSeg button').forEach(b=>b.classList.toggle('on', b.dataset.kind===k));
+  $('timeFields').style.display = k === 'note' ? 'none' : 'block';
+  $('fTitle').placeholder = k==='appt' ? 'เช่น ประชุมทีมการตลาด'
+                          : k==='task' ? 'เช่น ส่งรายงานยอดขาย'
+                          : 'เช่น สรุปที่คุยกับลูกค้าวันนี้';
+}
+document.querySelectorAll('#kindSeg button').forEach(b=>b.addEventListener('click',()=>setKind(b.dataset.kind)));
 
-  // ---------- role definitions ----------
-  const ROLES = {
-    master:  { name: "มาสเตอร์", emoji: "👑", cls: "role-master",
-      desc: "คุณรู้คำลับ! ตอบคำถามของทุกคนด้วย ใช่ / ไม่ใช่ / ไม่เกี่ยว เท่านั้น ห้ามบอกคำตรงๆ" },
-    insider: { name: "อินไซเดอร์ (ไส้ศึก)", emoji: "🕵️", cls: "role-insider",
-      desc: "คุณก็รู้คำลับ! แอบชี้นำให้กลุ่มทายถูกภายในเวลา แต่ต้องไม่ให้ใครจับได้ว่าคุณรู้คำอยู่แล้ว" },
-    common:  { name: "ประชาชน", emoji: "🧑‍🤝‍🧑", cls: "role-common",
-      desc: "คุณไม่รู้คำลับ ช่วยกันถามคำถามใช่/ไม่ใช่ เพื่อทายคำให้ทัน แล้วช่วยจับอินไซเดอร์ให้เจอ" }
+$('fab').addEventListener('click', ()=>openSheet(null));
+$('closeSheet').addEventListener('click', closeSheet);
+$('scrim').addEventListener('click', closeSheet);
+
+$('saveItem').addEventListener('click', ()=>{
+  const title = $('fTitle').value.trim();
+  if(!title){ $('fTitle').focus(); return; }
+
+  const withTime = kind !== 'note';
+  const rem = $('fRemind').value;
+  const data = {
+    kind, title,
+    note: $('fNote').value.trim(),
+    tags: $('fTags').value.split(',').map(s=>s.trim()).filter(Boolean),
+    pri: $('fPri').value,
+    at: withTime ? ($('fAt').value || null) : null,
+    remind: (withTime && rem !== '') ? +rem : null,
+    updated: Date.now()
   };
 
-  // ---------- state ----------
-  let state = {};
-
-  // ---------- populate selects ----------
-  const totalSel = document.getElementById('totalPlayers');
-  const mySel = document.getElementById('myNumber');
-  for (let i = 3; i <= 12; i++) {
-    totalSel.insertAdjacentHTML('beforeend', `<option value="${i}">${i} คน</option>`);
+  if(editingId){
+    const it = DB.items.find(i=>i.id===editingId);
+    Object.assign(it, data);
+    S().fired = (S().fired||[]).filter(f => f !== editingId);
+  }else{
+    DB.items.push(Object.assign({ id:uid(), done:false, created:Date.now() }, data));
   }
-  totalSel.value = 5;
-  function fillMyNumbers() {
-    const t = +totalSel.value;
-    mySel.innerHTML = '';
-    for (let i = 1; i <= t; i++) mySel.insertAdjacentHTML('beforeend', `<option value="${i}">คนที่ ${i}</option>`);
-  }
-  fillMyNumbers();
-  totalSel.addEventListener('change', fillMyNumbers);
+  save(); closeSheet(); render(); scheduleAll();
+});
 
-  // restore last room
-  const saved = JSON.parse(localStorage.getItem('insider') || '{}');
-  if (saved.room) document.getElementById('roomCode').value = saved.room;
-  if (saved.total) { totalSel.value = saved.total; fillMyNumbers(); }
+$('delItem').addEventListener('click', ()=>{
+  if(!editingId) return;
+  if(!confirm('ลบรายการนี้ถาวรใช่หรือไม่?')) return;
+  DB.items = DB.items.filter(i=>i.id!==editingId);
+  save(); closeSheet(); render();
+});
 
-  // ---------- screen nav ----------
-  function show(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    window.scrollTo(0, 0);
-  }
+/* ================= render ================= */
+function itemHTML(it){
+  const late = it.at && !it.done && new Date(it.at) < new Date();
+  const cls = ['item', it.kind, it.done?'done':'', late?'late':''].filter(Boolean).join(' ');
+  const checkable = it.kind !== 'note';
+  const tags = (it.tags||[]).map(t=>`<span class="tag">#${esc(t)}</span>`).join('');
+  const pri = it.pri==='high' ? '<span class="tag red">สำคัญมาก</span>'
+            : it.pri==='low'  ? '<span class="tag">ไม่เร่ง</span>' : '';
+  const when = it.at
+    ? `<span class="tag ${late?'red':'gold'}">${esc(fmtFull(it.at))}</span>
+       <span>${esc(relative(it.at))}</span>`
+    : `<span>${esc(new Date(it.created).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))}</span>`;
+  const bell = it.remind!=null && it.at && !it.done ? '<span title="ตั้งเตือนไว้">🔔</span>' : '';
 
-  document.getElementById('genCode').addEventListener('click', () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let c = "";
-    for (let i = 0; i < 5; i++) c += chars[Math.floor(Math.random() * chars.length)];
-    document.getElementById('roomCode').value = c;
+  return `<div class="${cls}" data-id="${it.id}">
+    ${checkable
+      ? `<div class="chk ${it.done?'on':''}" data-toggle="${it.id}">${it.done?'✔':''}</div>`
+      : `<div class="ic">${KIND[it.kind].ic}</div>`}
+    <div class="body">
+      <div class="t">${esc(it.title)}</div>
+      <div class="m">${when}${bell}${pri}${tags}</div>
+      ${it.note ? `<div class="d">${esc(it.note)}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function bindList(el){
+  el.querySelectorAll('[data-toggle]').forEach(c=>{
+    c.addEventListener('click', e=>{
+      e.stopPropagation();
+      const it = DB.items.find(i=>i.id===c.dataset.toggle);
+      it.done = !it.done; it.updated = Date.now();
+      save(); render(); scheduleAll();
+    });
+  });
+  el.querySelectorAll('.item').forEach(d=>{
+    d.addEventListener('click', ()=>openSheet(DB.items.find(i=>i.id===d.dataset.id)));
+  });
+}
+
+const byTime = (a,b) => new Date(a.at) - new Date(b.at);
+
+function render(){
+  const now = new Date();
+  const timed = DB.items.filter(i=>i.at);
+  const pend = timed.filter(i=>!i.done);
+
+  /* header */
+  const nm = S().name;
+  const hr = now.getHours();
+  $('hTitle').textContent = nm ? `สวัสดี ${nm}` : 'งานของฉัน';
+  $('hIcon').textContent = hr<5?'🌙':hr<12?'🌤️':hr<18?'☀️':'🌙';
+  $('hSub').textContent = now.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  /* stats */
+  const today = pend.filter(i=>dayDiff(i.at,now)===0);
+  const week  = pend.filter(i=>{ const d=dayDiff(i.at,now); return d>=0 && d<=7; });
+  const late  = pend.filter(i=>new Date(i.at)<now);
+  $('sToday').textContent = today.length;
+  $('sWeek').textContent  = week.length;
+  $('sLate').textContent  = late.length;
+
+  const bt = $('bToday');
+  const badge = today.length + late.length;
+  bt.style.display = badge ? 'flex' : 'none';
+  bt.textContent = badge;
+
+  /* upcoming */
+  const up = pend.slice().sort(byTime).filter(i=>dayDiff(i.at,now)<=7).slice(0,8);
+  $('upcomingList').innerHTML = up.length
+    ? up.map(itemHTML).join('')
+    : `<div class="empty"><span class="e">🎉</span>ไม่มีนัดหมายหรืองานค้างใน 7 วันนี้<br>กดปุ่ม <b>+</b> เพื่อเพิ่มรายการใหม่</div>`;
+  bindList($('upcomingList'));
+
+  /* recent notes */
+  const notes = DB.items.filter(i=>i.kind==='note').sort((a,b)=>b.created-a.created);
+  $('recentNotes').innerHTML = notes.length
+    ? notes.slice(0,4).map(itemHTML).join('')
+    : `<div class="empty"><span class="e">🗒️</span>ยังไม่มีบันทึก<br>จดความคืบหน้าหรือสรุปงานไว้ที่นี่ได้</div>`;
+  bindList($('recentNotes'));
+
+  renderPlan();
+  renderNotes();
+  $('cntAll').textContent = DB.items.length + ' รายการ';
+  $('userName').value = S().name || '';
+}
+
+let planFilter = 'upcoming';
+document.querySelectorAll('[data-filter]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('[data-filter]').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); planFilter = b.dataset.filter; renderPlan();
+  });
+});
+$('q').addEventListener('input', renderPlan);
+$('qn').addEventListener('input', renderNotes);
+
+function renderPlan(){
+  const q = $('q').value.trim().toLowerCase();
+  const now = new Date();
+  let list = DB.items.filter(i=>i.kind!=='note');
+
+  if(planFilter==='upcoming') list = list.filter(i=>!i.done);
+  else if(planFilter==='done') list = list.filter(i=>i.done);
+
+  if(q) list = list.filter(i =>
+    (i.title+' '+(i.note||'')+' '+(i.tags||[]).join(' ')).toLowerCase().includes(q));
+
+  list.sort((a,b)=>{
+    if(!a.at) return 1; if(!b.at) return -1;
+    return planFilter==='done' ? new Date(b.at)-new Date(a.at) : byTime(a,b);
   });
 
-  // ---------- round number (lets everyone reshuffle together) ----------
-  function currentRound() {
-    const s = JSON.parse(localStorage.getItem('insider') || '{}');
-    return s.round || 1;
+  if(!list.length){
+    $('planList').innerHTML = `<div class="empty"><span class="e">📭</span>${q?'ไม่พบรายการที่ค้นหา':'ยังไม่มีรายการในหมวดนี้'}</div>`;
+    return;
   }
 
-  document.getElementById('joinBtn').addEventListener('click', () => {
-    const room = document.getElementById('roomCode').value.trim().toUpperCase();
-    const total = +totalSel.value;
-    const myNum = +mySel.value;
-    if (!room) { alert('กรุณาใส่รหัสห้อง'); return; }
-
-    let s = JSON.parse(localStorage.getItem('insider') || '{}');
-    const round = (s.room === room) ? (s.round || 1) : 1;
-    localStorage.setItem('insider', JSON.stringify({ room, total, myNum, round }));
-
-    state = { room, total, myNum, round };
-    computeAndReveal();
-    show('screen-reveal');
-  });
-
-  function computeAndReveal() {
-    const { room, total, myNum, round } = state;
-    const rand = hashSeed(room + '#' + total + '#R' + round);
-
-    // pick secret word
-    const word = WORDS[Math.floor(rand() * WORDS.length)];
-
-    // assign roles: player numbers 1..total shuffled
-    const order = shuffle(Array.from({ length: total }, (_, i) => i + 1), rand);
-    const masterNum = order[0];
-    const insiderNum = order[1];
-
-    let role;
-    if (myNum === masterNum) role = 'master';
-    else if (myNum === insiderNum) role = 'insider';
-    else role = 'common';
-
-    state.role = role;
-    state.word = word;
-
-    document.getElementById('showCode').textContent = room;
-    document.getElementById('showNum').textContent = 'คนที่ ' + myNum;
-
-    const r = ROLES[role];
-    const showWord = (role === 'master' || role === 'insider');
-    document.getElementById('revealContent').innerHTML = `
-      <div class="role-emoji">${r.emoji}</div>
-      <div class="role-name">${r.name}</div>
-      <div class="role-desc">${r.desc}</div>
-      ${showWord ? `<div class="secret-word">🔑 ${word}</div>` : `<div class="hint mt">คำลับจะถูกเปิดเผยเมื่อจบเกม</div>`}
-    `;
-    const card = document.getElementById('revealCard');
-    card.className = 'reveal mt ' + r.cls;
-    card.classList.remove('open');
-  }
-
-  // ---------- reveal press-and-hold ----------
-  const revealCard = document.getElementById('revealCard');
-  const openReveal = () => revealCard.classList.add('open');
-  const closeReveal = () => revealCard.classList.remove('open');
-  revealCard.addEventListener('touchstart', (e) => { e.preventDefault(); openReveal(); }, { passive: false });
-  revealCard.addEventListener('touchend', closeReveal);
-  revealCard.addEventListener('touchcancel', closeReveal);
-  revealCard.addEventListener('mousedown', openReveal);
-  revealCard.addEventListener('mouseup', closeReveal);
-  revealCard.addEventListener('mouseleave', closeReveal);
-
-  document.getElementById('backHome').addEventListener('click', () => show('screen-home'));
-  document.getElementById('toTimer').addEventListener('click', () => { resetTimer(); show('screen-timer'); });
-
-  // ---------- timer ----------
-  let remaining = 300, tick = null, running = false;
-  const timerEl = document.getElementById('timer');
-  const minutesSel = document.getElementById('minutes');
-
-  function fmt(s) {
-    const m = Math.floor(s / 60), sec = s % 60;
-    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-  }
-  function renderTimer() {
-    timerEl.textContent = fmt(remaining);
-    timerEl.className = 'timer-display' + (remaining <= 10 ? ' danger' : remaining <= 30 ? ' warn' : '');
-  }
-  function resetTimer() {
-    clearInterval(tick); running = false;
-    remaining = +minutesSel.value * 60;
-    document.getElementById('startTimer').textContent = '▶️ เริ่ม';
-    renderTimer();
-  }
-  minutesSel.addEventListener('change', resetTimer);
-  document.getElementById('resetTimer').addEventListener('click', resetTimer);
-
-  document.getElementById('startTimer').addEventListener('click', () => {
-    if (running) {
-      clearInterval(tick); running = false;
-      document.getElementById('startTimer').textContent = '▶️ เล่นต่อ';
-      return;
+  let html = '', lastDay = null;
+  list.forEach(i=>{
+    const key = i.at ? startOfDay(i.at).getTime() : 'none';
+    if(key !== lastDay){
+      lastDay = key;
+      const isToday = i.at && dayDiff(i.at, now)===0;
+      html += `<div class="day ${isToday?'today':''}">${i.at ? esc(fmtDay(i.at)) : 'ไม่ระบุเวลา'}</div>`;
     }
-    running = true;
-    document.getElementById('startTimer').textContent = '⏸️ หยุด';
-    tick = setInterval(() => {
-      remaining--;
-      renderTimer();
-      if (remaining <= 0) {
-        clearInterval(tick); running = false;
-        document.getElementById('startTimer').textContent = '▶️ เริ่ม';
-        document.getElementById('phaseLabel').innerHTML = '⏰ หมดเวลา! เริ่มโหวตหาอินไซเดอร์ได้เลย';
-        try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
-      }
-    }, 1000);
+    html += itemHTML(i);
   });
-  renderTimer();
+  $('planList').innerHTML = html;
+  bindList($('planList'));
+}
 
-  // ---------- new round ----------
-  document.getElementById('newRound').addEventListener('click', () => {
-    let s = JSON.parse(localStorage.getItem('insider') || '{}');
-    s.round = (s.round || 1) + 1;
-    localStorage.setItem('insider', JSON.stringify(s));
-    alert('รอบใหม่: ' + s.round + '\nบอกทุกคนให้กด "เริ่มรอบใหม่" แล้วเข้าเล่นด้วยรหัสห้องเดิม เพื่อสุ่มบทบาทใหม่พร้อมกัน');
-    document.getElementById('phaseLabel').innerHTML = '⏱️ เวลาถาม-ตอบ เพื่อทายคำลับ';
-    show('screen-home');
+function renderNotes(){
+  const q = $('qn').value.trim().toLowerCase();
+  let list = DB.items.filter(i=>i.kind==='note').sort((a,b)=>b.created-a.created);
+  if(q) list = list.filter(i => (i.title+' '+(i.note||'')+' '+(i.tags||[]).join(' ')).toLowerCase().includes(q));
+
+  $('notesList').innerHTML = list.length
+    ? list.map(itemHTML).join('')
+    : `<div class="empty"><span class="e">📝</span>${q?'ไม่พบบันทึกที่ค้นหา':'ยังไม่มีบันทึก<br>กดปุ่ม + แล้วเลือก “บันทึก” เพื่อจดอัปเดตงาน'}</div>`;
+  bindList($('notesList'));
+}
+
+/* ================= notifications ================= */
+let timers = [];
+
+function remindAt(it){
+  return it.at && it.remind!=null ? new Date(it.at).getTime() - it.remind*60000 : null;
+}
+
+function scheduleAll(){
+  timers.forEach(clearTimeout); timers = [];
+  if(Notification?.permission !== 'granted') return;
+  const now = Date.now();
+  DB.items.filter(i=>!i.done && i.at && i.remind!=null).forEach(it=>{
+    const t = remindAt(it), delay = t - now;
+    if(delay > 0 && delay < 86400000*2){
+      timers.push(setTimeout(()=>fire(it), delay));
+    }
   });
+}
+
+function fire(it){
+  markFired(it.id);
+  const body = (it.at ? fmtFull(it.at) : '') + (it.note ? '\n' + it.note : '');
+  const opts = {
+    body, icon:'icons/icon-192.png', badge:'icons/icon-192.png',
+    tag:'wl-'+it.id, vibrate:[200,80,200], requireInteraction:true,
+    data:{ url:location.href }
+  };
+  try{
+    if(navigator.serviceWorker?.controller){
+      navigator.serviceWorker.ready.then(r=>r.showNotification(KIND[it.kind].ic+' '+it.title, opts));
+    }else{
+      new Notification(KIND[it.kind].ic+' '+it.title, opts);
+    }
+  }catch(e){ console.warn(e); }
+  render();
+}
+
+function markFired(id){
+  S().fired = [...new Set([...(S().fired||[]), id])];
+  save();
+}
+
+/* missed reminders on open */
+function checkMissed(){
+  if(S().digest === false){ $('missedBanner').innerHTML=''; return; }
+  const now = Date.now(), fired = S().fired || [];
+  const missed = DB.items.filter(i=>{
+    if(i.done || !i.at || i.remind==null || fired.includes(i.id)) return false;
+    return remindAt(i) <= now;
+  });
+  if(!missed.length){ $('missedBanner').innerHTML=''; return; }
+
+  $('missedBanner').innerHTML = `<div class="banner">
+    <b>🔔 มี ${missed.length} รายการถึงกำหนดแล้ว</b><br>
+    ${missed.slice(0,4).map(m=>'• '+esc(m.title)+' — '+esc(fmtFull(m.at))).join('<br>')}
+    ${missed.length>4 ? '<br>และอีก '+(missed.length-4)+' รายการ' : ''}
+    <button class="btn ghost sm" id="ackMissed">รับทราบทั้งหมด</button>
+  </div>`;
+  $('ackMissed').addEventListener('click', ()=>{
+    missed.forEach(m=>markFired(m.id));
+    checkMissed();
+  });
+
+  if(Notification?.permission === 'granted' && missed.length){
+    const it = missed[0];
+    const more = missed.length>1 ? ` และอีก ${missed.length-1} รายการ` : '';
+    try{
+      navigator.serviceWorker?.ready.then(r=>r.showNotification('🔔 มีงานถึงกำหนดแล้ว',{
+        body: it.title + more, icon:'icons/icon-192.png', tag:'wl-digest', vibrate:[200,80,200]
+      }));
+    }catch(e){}
+  }
+}
+
+function permUI(){
+  const p = typeof Notification !== 'undefined' ? Notification.permission : 'unsupported';
+  $('swNotif').classList.toggle('on', p==='granted');
+  const box = $('permBanner');
+  if(p === 'granted' || p === 'unsupported'){ box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="banner info">
+    <b>เปิดการแจ้งเตือนไหม?</b><br>
+    ระบบจะเด้งเตือนบนหน้าล็อกเมื่อใกล้ถึงเวลานัดหมาย
+    <button class="btn sm" id="askPerm" style="background:linear-gradient(135deg,var(--accent),#8b7cf0);color:#fff;">เปิดการแจ้งเตือน</button>
+  </div>`;
+  $('askPerm').addEventListener('click', askPerm);
+}
+
+async function askPerm(){
+  if(typeof Notification === 'undefined'){ alert('เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน'); return; }
+  const r = await Notification.requestPermission();
+  S().notif = r === 'granted'; save();
+  permUI(); scheduleAll();
+  if(r === 'denied') alert('การแจ้งเตือนถูกปิดไว้ — เปิดได้ที่ ตั้งค่าเบราว์เซอร์ › การตั้งค่าเว็บไซต์ › การแจ้งเตือน');
+}
+
+$('swNotif').addEventListener('click', askPerm);
+$('swDigest').addEventListener('click', ()=>{
+  S().digest = !(S().digest !== false); save();
+  $('swDigest').classList.toggle('on', S().digest !== false);
+  checkMissed();
+});
+$('testNotif').addEventListener('click', async ()=>{
+  if(Notification?.permission !== 'granted') return askPerm();
+  const o = { body:'ถ้าเห็นข้อความนี้แปลว่าการแจ้งเตือนพร้อมใช้งานแล้ว 🎉',
+              icon:'icons/icon-192.png', vibrate:[200,80,200], tag:'wl-test' };
+  navigator.serviceWorker?.controller
+    ? (await navigator.serviceWorker.ready).showNotification('🔔 ทดสอบการแจ้งเตือน', o)
+    : new Notification('🔔 ทดสอบการแจ้งเตือน', o);
+});
+
+/* ================= install (PWA) ================= */
+let deferredPrompt = null;
+const isStandalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+
+function installUI(){
+  const box = $('installBox');
+  if(isStandalone){
+    box.innerHTML = `<div class="banner" style="margin:0;"><b>✅ ติดตั้งแล้ว</b><br>
+      คุณกำลังเปิดจากไอคอนบนหน้าจอโฮมอยู่</div>`;
+    return;
+  }
+  if(deferredPrompt){
+    box.innerHTML = `<div style="font-size:.85rem;color:var(--muted);line-height:1.6;">
+      เพิ่มลงหน้าจอโฮมเพื่อเปิดได้เร็ว เต็มจอเหมือนแอป และใช้งานออฟไลน์ได้</div>
+      <button class="btn gold" id="doInstall">📲 เพิ่มลงหน้าจอโฮม</button>`;
+    $('doInstall').addEventListener('click', async ()=>{
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null; installUI();
+    });
+    return;
+  }
+  box.innerHTML = `<div style="font-size:.85rem;color:var(--muted);line-height:1.75;">
+    <b style="color:var(--accent2)">Chrome บน Android:</b><br>
+    แตะเมนู <b>⋮</b> มุมขวาบน › <b>เพิ่มลงในหน้าจอหลัก</b> › <b>ติดตั้ง</b><br><br>
+    <b style="color:var(--accent2)">Safari บน iPhone:</b><br>
+    แตะปุ่มแชร์ <b>􀈂</b> › <b>Add to Home Screen</b>
+  </div>`;
+}
+addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredPrompt = e; installUI(); });
+addEventListener('appinstalled', ()=>{ deferredPrompt = null; installUI(); });
+
+/* ================= settings actions ================= */
+$('saveName').addEventListener('click', ()=>{
+  S().name = $('userName').value.trim(); save(); render();
+  $('saveName').textContent = 'บันทึกแล้ว ✓';
+  setTimeout(()=>$('saveName').textContent='บันทึกชื่อ', 1500);
+});
+
+$('expBtn').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(DB,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `worklog-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+});
+
+$('impBtn').addEventListener('click', ()=>$('impFile').click());
+$('impFile').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const d = JSON.parse(rd.result);
+      if(!Array.isArray(d.items)) throw new Error('bad');
+      if(!confirm(`กู้คืน ${d.items.length} รายการ? ข้อมูลปัจจุบันจะถูกแทนที่`)) return;
+      DB = Object.assign({items:[],settings:{}}, d);
+      save(); render(); scheduleAll(); checkMissed();
+      alert('กู้คืนข้อมูลเรียบร้อย ✓');
+    }catch(err){ alert('ไฟล์ไม่ถูกต้อง'); }
+  };
+  rd.readAsText(f); e.target.value = '';
+});
+
+$('wipeBtn').addEventListener('click', ()=>{
+  if(!confirm('ลบข้อมูลทั้งหมดถาวร? แนะนำให้ดาวน์โหลดไฟล์สำรองก่อน')) return;
+  if(!confirm('ยืนยันอีกครั้ง — ข้อมูลจะหายทั้งหมด')) return;
+  DB = { items:[], settings:{ name:'', digest:true, fired:[] } };
+  save(); render(); scheduleAll(); checkMissed();
+});
+
+/* ================= boot ================= */
+if('serviceWorker' in navigator){
+  addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+render(); permUI(); installUI(); scheduleAll(); checkMissed();
+$('swDigest').classList.toggle('on', S().digest !== false);
+
+setInterval(()=>{ render(); checkMissed(); }, 60000);
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden){ render(); scheduleAll(); checkMissed(); }
+});
 </script>
 </body>
 </html>

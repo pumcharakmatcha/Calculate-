@@ -1,0 +1,40 @@
+{
+  "name": "งานของฉัน — แดชบอร์ดนัดหมายและแจ้งเตือน",
+  "short_name": "งานของฉัน",
+  "description": "จดและดูนัดหมาย งาน และอัปเดตการทำงาน พร้อมแจ้งเตือนถึงเวลา",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e1020",
+  "theme_color": "#6c5ce7",
+  "lang": "th",
+  "dir": "ltr",
+  "categories": ["productivity", "business"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
